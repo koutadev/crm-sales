@@ -8,6 +8,7 @@ use App\Models\Concerns\HasSequentialCode;
 use Database\Factories\PartnerFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * 取引先マスタ。
@@ -78,6 +79,36 @@ class Partner extends BaseModel
     public function scopeSuppliers(Builder $query): Builder
     {
         return $query->whereIn('partner_type', [PartnerType::Supplier->value, PartnerType::Both->value]);
+    }
+
+    /**
+     * 先方の担当者(CRM)。
+     *
+     * @return HasMany<PartnerContact, $this>
+     */
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(PartnerContact::class);
+    }
+
+    /**
+     * この顧客の商談(CRM)。
+     *
+     * @return HasMany<Deal, $this>
+     */
+    public function deals(): HasMany
+    {
+        return $this->hasMany(Deal::class);
+    }
+
+    /**
+     * この顧客への活動履歴(CRM)。
+     *
+     * @return HasMany<Activity, $this>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
     }
 
     public function activityLogLabel(): ?string

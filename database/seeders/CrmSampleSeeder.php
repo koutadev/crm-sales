@@ -1,0 +1,197 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Enums\ActivityType;
+use App\Enums\DealStatus;
+use App\Models\Activity;
+use App\Models\Deal;
+use App\Models\DealItem;
+use App\Models\Employee;
+use App\Models\Partner;
+use App\Models\PartnerContact;
+use App\Models\Product;
+use App\Models\TaxRate;
+use Database\Factories\DealItemFactory;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
+
+/**
+ * CRM の動作確認用サンプルデータ(本番環境では実行しない)。
+ *
+ * 共通マスタのサンプル(MasterSampleSeeder)を前提に、
+ * 顧客担当者 → 商談 → 明細 → 活動履歴が一通り入った状態を作る。
+ *
+ * 金額は「税込が正・消費税と税抜は逆算」という設計に沿った整合値を直接入れる。
+ * 計算ロジック自体は STEP 4 で実装する。
+ */
+class CrmSampleSeeder extends Seeder
+{
+    /** ステータスごとの商談件数 */
+    private const DEAL_PLAN = [
+        [DealStatus::Prospect, 6],
+        [DealStatus::Proposing, 5],
+        [DealStatus::Quoted, 4],
+        [DealStatus::Won, 7],
+        [DealStatus::Lost, 3],
+    ];
+
+    public function run(): void
+    {
+        // 既にサンプルが入っている場合は二重登録しない
+        if (Deal::query()->exists()) {
+            return;
+        }
+
+        $partners = Partner::query()->customers()->active()->orderBy('id')->limit(12)->get();
+        $employees = Employee::query()->active()->orderBy('id')->limit(6)->get();
+        $products = Product::query()->active()->get();
+
+        /** @var array<int, int> $taxRatePercents 税率マスタの [id => 税率%] */
+        $taxRatePercents = TaxRate::query()->pluck('rate_percent', 'id')->all();
+
+        // 共通マスタのサンプルが無い環境(本番相当)では何もしない
+        if ($partners->isEmpty() || $employees->isEmpty() || $products->isEmpty()) {
+            return;
+        }
+
+        $this->createContacts($partners);
+
+        foreach (self::DEAL_PLAN as [$status, $count]) {
+            for ($i = 0; $i < $count; $i++) {
+                $this->createDeal($status, $partners, $employees, $products, $taxRatePercents);
+            }
+        }
+
+        $this->createPartnerActivities($partners, $employees);
+    }
+
+    /**
+     * 会社ごとに 1〜3 名の担当者を作る。
+     *
+     * @param  Collection<int, Partner>  $partners
+     */
+    private function createContacts(Collection $partners): void
+    {
+        foreach ($partners as $partner) {
+            PartnerContact::factory()
+                ->count(fake()->numberBetween(1, 3))
+                ->create(['partner_id' => $partner->id]);
+        }
+    }
+
+    /**
+     * 商談 1 件と、その明細・活動履歴を作る。
+     *
+     * @param  Collection<int, Partner>  $partners
+     * @param  Collection<int, Employee>  $employees
+     * @param  Collection<int, Product>  $products
+     * @param  array<int, int>  $taxRatePercents
+     */
+    private function createDeal(DealStatus $status, Collection $partners, Collection $employees, Collection $products, array $taxRatePercents): void
+    {
+        /** @var Partner $partner */
+        $partner = $partners->random();
+
+        $contact = PartnerContact::query()->where('partner_id', $partner->id)->inRandomOrder()->first();
+
+        $orderedAt = $status === DealStatus::Won
+            ? fake()->dateTimeBetween('-4 months', '-1 week')->format('Y-m-d')
+            : null;
+
+        $deal = Deal::factory()->create([
+            'partner_id' => $partner->id,
+            'partner_contact_id' => $contact?->id,
+            'employee_id' => $employees->random()->id,
+            'status' => $status,
+            'probability' => $this->probabilityFor($status),
+            'expected_close_date' => $orderedAt ?? fake()->dateTimeBetween('-1 month', '+4 months')->format('Y-m-d'),
+            'ordered_at' => $orderedAt,
+        ]);
+
+        $this->createItems($deal, $products, $taxRatePercents);
+        $this->createDealActivities($deal, $employees);
+    }
+
+    /**
+     * 商談明細を 1〜3 行作り、商談の税込合計を更新する。
+     *
+     * @param  Collection<int, Product>  $products
+     * @param  array<int, int>  $taxRatePercents
+     */
+    private function createItems(Deal $deal, Collection $products, array $taxRatePercents): void
+    {
+        $total = 0;
+
+        foreach ($products->shuffle()->take(fake()->numberBetween(1, 3)) as $product) {
+            /** @var Product $product */
+            $quantity = fake()->numberBetween(1, 12);
+
+            // 商品マスタの単価は税込単価として扱う(共通基盤から引き継いだ decimal を整数化)
+            $unitPrice = (int) round((float) $product->unit_price);
+            $ratePercent = $taxRatePercents[(int) $product->tax_rate_id] ?? 10;
+
+            $item = DealItem::factory()->create(array_merge(
+                [
+                    'deal_id' => $deal->id,
+                    'product_id' => $product->id,
+                    'tax_rate_id' => $product->tax_rate_id,
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'tax_rate_percent' => $ratePercent,
+                ],
+                DealItemFactory::amounts($unitPrice * $quantity, $ratePercent),
+            ));
+
+            $total += $item->amount_incl_tax;
+        }
+
+        // 合計の再計算は STEP 4 で実装する。ここでは明細と整合する値を入れておく
+        $deal->forceFill(['amount_total' => $total])->saveQuietly();
+    }
+
+    /**
+     * 商談に紐づく活動履歴。
+     *
+     * @param  Collection<int, Employee>  $employees
+     */
+    private function createDealActivities(Deal $deal, Collection $employees): void
+    {
+        Activity::factory()
+            ->count(fake()->numberBetween(1, 4))
+            ->create([
+                'partner_id' => $deal->partner_id,
+                'deal_id' => $deal->id,
+                'employee_id' => $employees->random()->id,
+            ]);
+    }
+
+    /**
+     * 商談に紐づかない、顧客への活動(定期連絡など)。
+     *
+     * @param  Collection<int, Partner>  $partners
+     * @param  Collection<int, Employee>  $employees
+     */
+    private function createPartnerActivities(Collection $partners, Collection $employees): void
+    {
+        foreach ($partners->take(6) as $partner) {
+            Activity::factory()->create([
+                'partner_id' => $partner->id,
+                'deal_id' => null,
+                'employee_id' => $employees->random()->id,
+                'type' => ActivityType::Phone,
+            ]);
+        }
+    }
+
+    private function probabilityFor(DealStatus $status): int
+    {
+        return match ($status) {
+            DealStatus::Prospect => 10,
+            DealStatus::Proposing => 40,
+            DealStatus::Quoted => 70,
+            DealStatus::Won => 100,
+            DealStatus::Lost => 0,
+        };
+    }
+}

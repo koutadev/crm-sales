@@ -6,6 +6,7 @@ use App\Models\Concerns\HasSequentialCode;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * 商品マスタ。
@@ -85,6 +86,16 @@ class Product extends BaseModel
     public function taxRate(): BelongsTo
     {
         return $this->belongsTo(TaxRate::class);
+    }
+
+    /**
+     * この商品を使っている商談明細(CRM)。
+     *
+     * @return HasMany<DealItem, $this>
+     */
+    public function dealItems(): HasMany
+    {
+        return $this->hasMany(DealItem::class);
     }
 
     /**

@@ -71,6 +71,16 @@ class TaxRate extends BaseModel
     }
 
     /**
+     * この税率を引き当てた商談明細(CRM)。
+     *
+     * @return HasMany<DealItem, $this>
+     */
+    public function dealItems(): HasMany
+    {
+        return $this->hasMany(DealItem::class);
+    }
+
+    /**
      * セレクトボックス用の選択肢([id => ラベル])。適用開始日の新しい順。
      *
      * @param  bool  $activeOnly  有効な税率だけに絞るか(登録フォーム用)

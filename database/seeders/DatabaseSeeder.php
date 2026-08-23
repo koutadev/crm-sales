@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             $this->call([
                 DemoUserSeeder::class,
                 MasterSampleSeeder::class,
+                CrmSampleSeeder::class,
             ]);
         }
     }

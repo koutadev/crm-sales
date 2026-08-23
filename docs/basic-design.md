@@ -174,7 +174,7 @@ erDiagram
 
 - 共通基盤 `laravel-business-template` を clone して構築（Laravel 13 / PHP 8.3 / PostgreSQL 16 / Blade + Tailwind + Alpine / spatie権限 / BaseModel共通仕様 / 共通一覧基盤 / 監査ログ / Docker / Pint+Larastan+PHPUnit）。
 - 商談コードは基盤の採番機構を用い、年度別キー（例：`deals:2026` → `DEAL-2026-0001`）で払い出す。
-- 金額はすべて**税込・整数**（最小通貨単位）で保持し、通貨誤差を避ける。※共通基盤から引き継いだ `products.unit_price` は現状 `decimal(12,2)` で画面の文言も税抜前提のため、STEP 2 で**税込単価・整数**へ揃える。
+- 金額はすべて**税込・整数**（最小通貨単位）で保持し、通貨誤差を避ける。※共通基盤から引き継いだ `products.unit_price` は現状 `decimal(12,2)` で画面の文言も税抜前提のため、**商談明細の画面を作る前に**税込単価・整数へ揃える（`deal_items.unit_price` は税込・整数で作成済み）。
 - 静的デモ（Vercel）は本設計の代表画面（ダッシュボード/商談一覧/商談詳細）をテーマ適用して見せる。
 
 ## 10. 静的デモ・仮想クライアント設定
