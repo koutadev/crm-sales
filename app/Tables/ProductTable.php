@@ -4,6 +4,7 @@ namespace App\Tables;
 
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\TaxRate;
 use App\Support\DataTable\Column;
 use App\Support\DataTable\Filter;
 use App\Support\DataTable\TableDefinition;
@@ -27,7 +28,10 @@ class ProductTable extends TableDefinition
 
     public function query(): Builder
     {
-        return Product::query()->with('category:id,name');
+        return Product::query()->with([
+            'category:id,name',
+            'taxRate:id,name,rate_percent,effective_from',
+        ]);
     }
 
     public function columns(): array
@@ -37,6 +41,7 @@ class ProductTable extends TableDefinition
             new Column('name', '商品名', sortable: true),
             new Column('product_category_id', '分類'),
             new Column('unit_price', '標準単価', sortable: true, align: 'right', wrap: false),
+            new Column('tax_rate_id', '税率', align: 'center', wrap: false),
             new Column('unit', '単位', align: 'center'),
             new Column('is_active', '状態', sortable: true, align: 'center'),
             new Column('updated_at', '更新日時', sortable: true, wrap: false),
@@ -57,6 +62,7 @@ class ProductTable extends TableDefinition
     {
         return [
             new Filter('product_category_id', '分類', $this->categoryOptions()),
+            new Filter('tax_rate_id', '税率', $this->taxRateOptions()),
             Filter::activeFlag(),
         ];
     }
@@ -69,6 +75,7 @@ class ProductTable extends TableDefinition
             $model->name,
             $model->category?->name,
             $model->unit_price,
+            $model->taxRate?->label(),
             $model->unit,
             $model->activeLabel(),
             $model->updated_at?->format('Y/m/d H:i'),
@@ -81,5 +88,13 @@ class ProductTable extends TableDefinition
     private function categoryOptions(): array
     {
         return ProductCategory::query()->orderBy('code')->pluck('name', 'id')->all();
+    }
+
+    /**
+     * @return array<array-key, string>
+     */
+    private function taxRateOptions(): array
+    {
+        return TaxRate::options();
     }
 }

@@ -14,8 +14,15 @@
 
 ## このリポジトリの現在地
 
-共通基盤の取り込みが完了した段階です。
-CRM 固有のテーブルと画面（`deals` / `deal_items` / `partner_contacts` / `activities` / `tax_rates`）はこれから実装します。
+共通基盤の取り込みに加えて、**税の土台（税率マスタと商品への税率紐付け）**まで実装済みです。
+
+| STEP | 内容 | 状態 |
+| --- | --- | --- |
+| 1 | 共通基盤（`laravel-business-template`）の取り込み | 完了 |
+| 2 | 税率マスタ `tax_rates` / 商品マスタへの標準税率の紐付け | 完了 |
+| 3 | 商談 `deals` / 商談明細 `deal_items` / 先方担当 `partner_contacts` / 活動履歴 `activities` | 未着手 |
+
+金額・税の考え方（内税管理と税率の時点保全）は [docs/basic-design.md](docs/basic-design.md) の「6. 金額・税の設計」を参照してください。
 
 ```bash
 git clone git@github.com:koutadev/crm-sales.git && cd crm-sales
@@ -68,7 +75,7 @@ CRM 固有の設計は [docs/basic-design.md](docs/basic-design.md) を参照し
 
 ### 現在の状態
 
-共通基盤としては**完成**しています。テスト 99 件・PHPStan level 5・Pint がすべて通る状態を維持しています。
+共通基盤としては**完成**しています。テスト 109 件・PHPStan level 5・Pint がすべて通る状態を維持しています（件数には CRM 側で追加したテストを含みます）。
 
 ---
 
@@ -81,6 +88,7 @@ CRM 固有の設計は [docs/basic-design.md](docs/basic-design.md) を参照し
 | | メニュー・ボタン・ルートの出し分け | 画面で隠すだけでなくルート側でも必ず検査 |
 | | ユーザー管理画面 | `user.manage` を持つ管理者がロールを付け替え |
 | **共通マスタ** | 社員 / 取引先 / 商品 + サブマスタ（部署 / 役職 / 商品分類） | 業務コードを自動採番（`EMP-0001` 形式） |
+| **税（CRM 固有）** | 税率マスタ（適用開始日で世代管理） / 商品の標準税率 | 税率変更はレコード追加で対応。商品で未選択なら既定の標準税率を自動割り当て |
 | **一覧基盤** | 検索・絞り込み・ページング（20 件）・ソート | 定義クラスを 1 つ書くだけで全機能が揃う |
 | | **検索条件の保持** | 別画面へ移動して戻っても条件が残る（セッション保存） |
 | | CSV エクスポート | UTF-8 BOM 付き。現在の絞り込みを反映し全件をストリーミング |
@@ -89,7 +97,7 @@ CRM 固有の設計は [docs/basic-design.md](docs/basic-design.md) を参照し
 | **ダッシュボード** | KPI カード + グラフ + 最近の操作 | Chart.js。中身はコントローラから配列で差し替え |
 | **テーマ** | サービス名・ロゴ・配色の切り替え | 設定 1 か所。**アセットの再ビルド不要** |
 | **日本語化** | バリデーション / 認証 / 画面文言 | `lang/ja` に集約 |
-| **品質** | Pint / Larastan(level 5) / PHPUnit 99 件 | GitHub Actions で自動実行 |
+| **品質** | Pint / Larastan(level 5) / PHPUnit 109 件 | GitHub Actions で自動実行 |
 
 ---
 
@@ -258,6 +266,9 @@ erDiagram
 
 すべての業務テーブルは共通カラムを持ちます（図では省略）:
 `is_active` / `created_by` / `updated_by` / `created_at` / `updated_at` / `deleted_at`
+
+> この図は共通基盤から引き継いだテーブルです。CRM 固有のテーブル（`tax_rates` / 今後追加する `deals` など）を含む ER 図は
+> [docs/basic-design.md](docs/basic-design.md) の「5. データ設計（ER図）」にあります。
 
 ### 将来の業務システムとの関係
 

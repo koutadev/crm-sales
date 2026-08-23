@@ -9,6 +9,7 @@ use App\Http\Controllers\Masters\PartnerController;
 use App\Http\Controllers\Masters\PositionController;
 use App\Http\Controllers\Masters\ProductCategoryController;
 use App\Http\Controllers\Masters\ProductController;
+use App\Http\Controllers\Masters\TaxRateController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Support\Routing\MasterRoutes;
@@ -65,6 +66,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         MasterRoutes::register('departments', DepartmentController::class, 'departments');
         MasterRoutes::register('positions', PositionController::class, 'positions');
         MasterRoutes::register('product-categories', ProductCategoryController::class, 'product-categories');
+
+        // CRM 固有のマスタ
+        MasterRoutes::register('tax-rates', TaxRateController::class, 'tax-rates');
     });
 
     // --- ユーザー管理(ロールの付け替え) ----------------------------------

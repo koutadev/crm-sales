@@ -29,8 +29,8 @@
                     @method('PUT')
                 @endif
 
-                @if ($editing)
-                    {{-- コードは自動採番のため変更できない --}}
+                @if ($editing && filled($record->code))
+                    {{-- コードは自動採番のため変更できない(コードを持たないマスタでは表示しない) --}}
                     <div>
                         <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">コード</span>
                         <p class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100">{{ $record->code }}</p>

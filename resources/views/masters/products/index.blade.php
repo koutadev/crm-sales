@@ -8,6 +8,14 @@
                 {{ number_format((float) $product->unit_price) }}
             </td>
             <td class="whitespace-nowrap px-4 py-3 text-center text-gray-600 dark:text-gray-400">
+                @if ($product->taxRate)
+                    <span class="tabular-nums">{{ $product->taxRate->rate_percent }}%</span>
+                    <span class="ms-1 text-xs text-gray-500 dark:text-gray-500">{{ $product->taxRate->name }}</span>
+                @else
+                    —
+                @endif
+            </td>
+            <td class="whitespace-nowrap px-4 py-3 text-center text-gray-600 dark:text-gray-400">
                 {{ $product->unit ?? '—' }}
             </td>
             <td class="whitespace-nowrap px-4 py-3 text-center">

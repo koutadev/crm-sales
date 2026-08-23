@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Masters;
 use App\Http\Requests\Masters\ProductRequest;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\TaxRate;
 use App\Support\DataTable\TableDefinition;
 use App\Tables\ProductTable;
 use Illuminate\Http\RedirectResponse;
@@ -63,9 +64,16 @@ class ProductController extends MasterController
      */
     private function formData(Product $product): array
     {
+        // 新規登録時は既定の標準税率を初期選択にしておく(未選択で保存しても同じ税率が入る)
+        if (! $product->exists && $product->tax_rate_id === null) {
+            $product->tax_rate_id = TaxRate::standard()?->id;
+        }
+
         return array_merge($this->sharedViewData(), [
             'product' => $product,
             'categoryOptions' => ProductCategory::query()->active()->orderBy('code')->pluck('name', 'id')->all(),
+            'taxRateOptions' => TaxRate::options(activeOnly: true),
+            'standardTaxRate' => TaxRate::standard(),
         ]);
     }
 }

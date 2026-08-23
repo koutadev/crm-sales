@@ -11,11 +11,19 @@
                         placeholder="未設定" />
     </x-form-field>
 
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
         <x-form-field name="unit_price" label="標準単価" :required="true" help="税抜の標準単価を入力します。">
             <x-text-input id="unit_price" name="unit_price" type="number" step="0.01" min="0"
                           class="mt-1 block w-full text-right"
                           :value="old('unit_price', $product->exists ? $product->unit_price : '0')" required />
+        </x-form-field>
+
+        <x-form-field name="tax_rate_id" label="税率"
+                      :help="'未選択のまま保存すると既定の標準税率'.($standardTaxRate ? '（'.$standardTaxRate->label().'）' : '').'が設定されます。'">
+            <x-select-input id="tax_rate_id" name="tax_rate_id" class="mt-1 block w-full"
+                            :options="$taxRateOptions"
+                            :selected="old('tax_rate_id', $product->tax_rate_id)"
+                            placeholder="未選択（既定の標準税率）" />
         </x-form-field>
 
         <x-form-field name="unit" label="単位" help="個 / 式 / kg など">

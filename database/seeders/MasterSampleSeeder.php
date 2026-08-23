@@ -8,6 +8,7 @@ use App\Models\Partner;
 use App\Models\Position;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\TaxRate;
 use Illuminate\Database\Seeder;
 
 /**
@@ -29,6 +30,9 @@ class MasterSampleSeeder extends Seeder
         $positions = Position::factory()->count(5)->create();
         $categories = ProductCategory::factory()->count(5)->create();
 
+        // 既定の標準税率は TaxRateSeeder が投入済み。軽減税率も足して絞り込みを確認できるようにする
+        $reducedTaxRate = TaxRate::factory()->reduced()->create();
+
         Employee::factory()
             ->count(28)
             ->create()
@@ -44,11 +48,16 @@ class MasterSampleSeeder extends Seeder
 
         Partner::factory()->count(26)->create();
 
+        // 税率は未指定。Product の保存時フックで既定の標準税率が入る
         Product::factory()
             ->count(24)
             ->create()
-            ->each(function (Product $product) use ($categories): void {
-                $product->forceFill(['product_category_id' => $categories->random()->id])->saveQuietly();
+            ->each(function (Product $product, int $index) use ($categories, $reducedTaxRate): void {
+                $product->forceFill([
+                    'product_category_id' => $categories->random()->id,
+                    // 一部の商品は軽減税率にしておく
+                    'tax_rate_id' => $index % 6 === 0 ? $reducedTaxRate->id : $product->tax_rate_id,
+                ])->saveQuietly();
             });
     }
 }

@@ -16,6 +16,7 @@ class ProductRequest extends MasterRequest
             'product_category_id' => ['nullable', Rule::exists('product_categories', 'id')->whereNull('deleted_at')],
             'unit_price' => ['required', 'numeric', 'min:0', 'max:9999999999'],
             'unit' => ['nullable', 'string', 'max:16'],
+            'tax_rate_id' => ['nullable', Rule::exists('tax_rates', 'id')->whereNull('deleted_at')],
             'is_active' => ['boolean'],
         ];
     }
@@ -30,6 +31,7 @@ class ProductRequest extends MasterRequest
             'product_category_id' => '分類',
             'unit_price' => '標準単価',
             'unit' => '単位',
+            'tax_rate_id' => '税率',
             'is_active' => '状態',
         ];
     }

@@ -9,6 +9,7 @@
         ['route' => 'masters.departments.index', 'label' => '部署'],
         ['route' => 'masters.positions.index', 'label' => '役職'],
         ['route' => 'masters.product-categories.index', 'label' => '商品分類'],
+        ['route' => 'masters.tax-rates.index', 'label' => '税率'],
     ];
 @endphp
 
