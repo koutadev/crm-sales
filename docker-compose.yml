@@ -1,0 +1,73 @@
+# 業務システム共通基盤テンプレート - 開発用 Docker 構成
+#
+#   app : PHP 8.3 (FPM) + Composer + Node.js  … Laravel 本体
+#   web : Nginx                               … http://localhost:8080
+#   db  : PostgreSQL 16                       … localhost:5432
+#
+# 各種ポートや DB 接続情報は .env (無ければ以下のデフォルト値) を参照します。
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        # Linux で権限がずれる場合は `UID=$(id -u) GID=$(id -g) docker compose build`
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: lbt-app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    ports:
+      # Vite 開発サーバー (npm run dev) 用
+      - "${VITE_PORT:-5173}:5173"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - lbt
+
+  web:
+    image: nginx:1.27-alpine
+    container_name: lbt-web
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - lbt
+
+  db:
+    image: postgres:16-alpine
+    container_name: lbt-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-crm_sales}
+      POSTGRES_USER: ${DB_USERNAME:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      TZ: Asia/Tokyo
+    ports:
+      - "${FORWARD_DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # 初回起動時にテスト用データベース(<DB_DATABASE>_testing)を作成する
+      - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-app} -d ${DB_DATABASE:-crm_sales}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - lbt
+
+volumes:
+  db-data:
+
+networks:
+  lbt:
+    driver: bridge

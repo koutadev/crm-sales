@@ -1,0 +1,20 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - config
+        - database
+        - routes
+        - tests
+
+    # 0(緩い) 〜 10(厳格)。まずは 5 から始め、コードが安定したら段階的に上げる。
+    level: 5
+
+    ignoreErrors:
+        # Breeze の雛形。メール確認を有効にする場合は User に MustVerifyEmail を
+        # 実装すること(実装すればこの除外は不要になる)。
+        -
+            message: '#expects Illuminate\\Contracts\\Auth\\MustVerifyEmail, App\\Models\\User\|null given#'
+            path: app/Http/Controllers/Auth/VerifyEmailController.php

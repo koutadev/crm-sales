@@ -1,0 +1,49 @@
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/forms';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* Alpine.js の x-cloak: 初期化前の要素を隠す */
+[x-cloak] {
+    display: none !important;
+}
+
+/*
+ * テーマの配色。
+ *
+ * --color-primary / --color-accent の実際の値は config/theme.php から
+ * <head> の <style> で上書きされる（layouts/partials/theme.blade.php）。
+ * ここでの定義はビルド時の既定値であり、フォールバックも兼ねる。
+ *
+ * 派生色は color-mix() で primary から作っているため、
+ * primary を差し替えるだけでボタン・バッジ・リンクがまとめて追従する。
+ */
+@theme {
+    --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* ブランド色（明暗どちらのモードでも同じ） */
+    --color-primary: #4f46e5;
+    --color-accent: #0891b2;
+
+    /* ボタンのホバー時 */
+    --color-primary-hover: color-mix(in oklab, var(--color-primary) 82%, white);
+
+    /* バッジや淡い背景 */
+    --color-primary-soft: color-mix(in oklab, var(--color-primary) 12%, white);
+    --color-primary-soft-fg: color-mix(in oklab, var(--color-primary) 78%, black);
+
+    /* 本文中のリンク色（背景が明るい前提） */
+    --color-primary-text: var(--color-primary);
+}
+
+/* 暗いモードでは淡色とリンク色だけ明るい側へ寄せる */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-primary-soft: color-mix(in oklab, var(--color-primary) 32%, black);
+        --color-primary-soft-fg: color-mix(in oklab, var(--color-primary) 30%, white);
+        --color-primary-text: color-mix(in oklab, var(--color-primary) 55%, white);
+    }
+}
