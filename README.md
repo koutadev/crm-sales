@@ -133,9 +133,9 @@ docker compose exec app php artisan migrate --seed
 
 | サービス | 役割 | ホスト側ポート |
 | --- | --- | --- |
-| `web` (`lbt-web`) | Nginx | **8080** → 80 |
-| `app` (`lbt-app`) | PHP 8.3-FPM / Composer / Node.js 22 | 5173（Vite 開発サーバー用） |
-| `db` (`lbt-db`) | PostgreSQL 16 | **5432** |
+| `web` (`crm-web`) | Nginx | **8080** → 80 |
+| `app` (`crm-app`) | PHP 8.3-FPM / Composer / Node.js 22 | 5173（Vite 開発サーバー用） |
+| `db` (`crm-db`) | PostgreSQL 16 | **5432** |
 
 ポートは `.env` の `APP_PORT` / `FORWARD_DB_PORT` / `VITE_PORT` で変更できます。
 

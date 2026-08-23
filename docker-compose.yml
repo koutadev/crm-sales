@@ -1,4 +1,4 @@
-# 業務システム共通基盤テンプレート - 開発用 Docker 構成
+# CRM（営業・売上管理システム） - 開発用 Docker 構成
 #
 #   app : PHP 8.3 (FPM) + Composer + Node.js  … Laravel 本体
 #   web : Nginx                               … http://localhost:8080
@@ -15,7 +15,7 @@ services:
         # Linux で権限がずれる場合は `UID=$(id -u) GID=$(id -g) docker compose build`
         UID: ${UID:-1000}
         GID: ${GID:-1000}
-    container_name: lbt-app
+    container_name: crm-app
     restart: unless-stopped
     volumes:
       - .:/var/www/html
@@ -26,11 +26,11 @@ services:
       db:
         condition: service_healthy
     networks:
-      - lbt
+      - crm
 
   web:
     image: nginx:1.27-alpine
-    container_name: lbt-web
+    container_name: crm-web
     restart: unless-stopped
     ports:
       - "${APP_PORT:-8080}:80"
@@ -40,11 +40,11 @@ services:
     depends_on:
       - app
     networks:
-      - lbt
+      - crm
 
   db:
     image: postgres:16-alpine
-    container_name: lbt-db
+    container_name: crm-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_DATABASE:-crm_sales}
@@ -63,11 +63,11 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - lbt
+      - crm
 
 volumes:
   db-data:
 
 networks:
-  lbt:
+  crm:
     driver: bridge
