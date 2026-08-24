@@ -2,85 +2,97 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\EmploymentStatus;
-use App\Enums\PartnerType;
 use App\Enums\PermissionName;
 use App\Models\ActivityLog;
-use App\Models\Employee;
-use App\Models\Partner;
-use App\Models\Product;
-use App\Models\ProductCategory;
+use App\Support\Crm\DealHeadline;
+use App\Support\Crm\DealMetrics;
+use App\Support\Crm\PipelineRow;
 use App\Support\Dashboard\Chart;
 use App\Support\Dashboard\Kpi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
- * ダッシュボードの「枠」。
+ * 売上ダッシュボード。
  *
- * ここで表示しているのは共通マスタの実データを使った例であり、
- * 各業務システムでは kpis() / charts() / recentActivities() の中身を差し替えて使う。
- * ビュー側（dashboard.blade.php）は「KPI カードの配列」「グラフの配列」を受け取るだけなので、
- * 内容を入れ替えてもレイアウトは変更不要。
+ * 集計の方針(詳しくは App\Support\Crm\DealMetrics):
+ *   - 金額はすべて税込。売上は受注日ベース、見込みは予定クローズ日ベース
+ *   - KPI 4 種で 1 クエリ、月次推移・担当者別・ステータス別で各 1 クエリの計 4 クエリ。
+ *     月や担当者ごとにループでクエリを回さない
+ *   - 期間は固定(KPI は当月・推移は直近 12 か月)。期間フィルタ UI は作っていない
  *
+ * 画面は共通基盤のダッシュボード枠(KPI カード + Chart.js)をそのまま使う。
  * 権限を持たないユーザーには、そのブロックごと表示しない。
  */
 class DashboardController extends Controller
 {
     public function index(Request $request): View
     {
-        $canViewMasters = $request->user()?->can(PermissionName::MasterView->value) ?? false;
+        // 商談を見られる権限があるかどうかで、金額のブロックごと出し分ける
+        $canViewDeals = $request->user()?->can(PermissionName::MasterView->value) ?? false;
         $canViewLogs = $request->user()?->can(PermissionName::ActivityLogView->value) ?? false;
 
+        if (! $canViewDeals) {
+            return view('dashboard', [
+                'kpis' => [],
+                'charts' => [],
+                'pipeline' => [],
+                'recentActivities' => $canViewLogs ? $this->recentActivities() : null,
+            ]);
+        }
+
+        $headline = DealMetrics::headline();
+        $monthlySales = DealMetrics::monthlySales(12);
+        $salesByEmployee = DealMetrics::salesByEmployee();
+        $pipeline = DealMetrics::pipeline();
+
         return view('dashboard', [
-            'kpis' => $canViewMasters ? $this->kpis() : [],
-            'charts' => $canViewMasters ? $this->charts() : [],
+            'kpis' => $this->kpis($headline),
+            'charts' => $this->charts($monthlySales, $salesByEmployee, $pipeline),
+            'pipeline' => $pipeline,
             'recentActivities' => $canViewLogs ? $this->recentActivities() : null,
         ]);
     }
 
     /**
-     * KPI カード。
+     * KPI カード。金額はすべて税込。
      *
      * @return list<Kpi>
      */
-    private function kpis(): array
+    private function kpis(DealHeadline $headline): array
     {
-        $employeeCount = Employee::query()->count();
-        $activeEmployees = Employee::query()
-            ->where('employment_status', EmploymentStatus::Active)
-            ->count();
+        $thisMonth = Carbon::now()->format('Y年n月');
 
         return [
             new Kpi(
-                label: '社員',
-                value: $employeeCount,
-                unit: '名',
-                href: route('masters.employees.index'),
-                note: sprintf('うち在籍 %s 名', number_format($activeEmployees)),
+                label: '今月の受注(税込)',
+                value: $headline->wonThisMonth,
+                unit: '円',
+                href: route('deals.index', ['status' => 'won']),
+                note: $thisMonth.'に受注した商談',
             ),
             new Kpi(
-                label: '取引先',
-                value: Partner::query()->count(),
-                unit: '社',
-                href: route('masters.partners.index'),
-                note: sprintf('得意先 %s 社', number_format(Partner::query()->customers()->count())),
+                label: '今月の受注見込み(税込)',
+                value: $headline->forecastThisMonth,
+                unit: '円',
+                href: route('deals.index', ['status' => 'open']),
+                note: '今月クローズ予定 × 確度',
             ),
             new Kpi(
-                label: '商品',
-                value: Product::query()->count(),
+                label: '進行中の商談',
+                value: $headline->openCount,
                 unit: '件',
-                href: route('masters.products.index'),
-                note: sprintf('分類 %s 件', number_format(ProductCategory::query()->count())),
+                href: route('deals.index', ['status' => 'open']),
+                note: '受注・失注を除く',
             ),
             new Kpi(
-                label: '有効なマスタ',
-                value: Employee::query()->active()->count()
-                    + Partner::query()->active()->count()
-                    + Product::query()->active()->count(),
-                unit: '件',
-                note: 'is_active が有効なデータの合計',
+                label: '受注残(税込)',
+                value: $headline->backlogTotal,
+                unit: '円',
+                href: route('deals.index', ['status' => 'won']),
+                note: '受注済みで納品予定日が未到来',
             ),
         ];
     }
@@ -88,60 +100,24 @@ class DashboardController extends Controller
     /**
      * グラフ。
      *
+     * @param  array<string, int>  $monthlySales
+     * @param  array<string, int>  $salesByEmployee
+     * @param  list<PipelineRow>  $pipeline
      * @return list<Chart>
      */
-    private function charts(): array
+    private function charts(array $monthlySales, array $salesByEmployee, array $pipeline): array
     {
+        $pipelineAmounts = [];
+
+        foreach ($pipeline as $row) {
+            $pipelineAmounts[$row->status->label()] = $row->totalInclTax;
+        }
+
         return [
-            Chart::doughnut('partner-type', '取引先区分の内訳', $this->partnerTypeBreakdown()),
-            Chart::bar('product-category', '商品分類別の件数', $this->productCategoryBreakdown(), '商品件数'),
+            Chart::line('monthly-sales', '月次売上推移（受注日ベース・税込）', $monthlySales, '受注金額'),
+            Chart::bar('sales-by-employee', '担当者別の売上（受注・税込）', $salesByEmployee, '受注金額'),
+            Chart::bar('pipeline-amount', 'ステータス別の商談金額（税込）', $pipelineAmounts, '商談金額'),
         ];
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    private function partnerTypeBreakdown(): array
-    {
-        /** @var Collection<string, int> $counts */
-        $counts = Partner::query()
-            ->selectRaw('partner_type, count(*) as aggregate')
-            ->groupBy('partner_type')
-            ->pluck('aggregate', 'partner_type');
-
-        $breakdown = [];
-
-        // 0 件の区分も 0 として並べ、凡例の順序を安定させる
-        foreach (PartnerType::cases() as $type) {
-            $breakdown[$type->label()] = (int) ($counts[$type->value] ?? 0);
-        }
-
-        return $breakdown;
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    private function productCategoryBreakdown(): array
-    {
-        $categories = ProductCategory::query()
-            ->withCount('products')
-            ->orderBy('code')
-            ->get();
-
-        $breakdown = [];
-
-        foreach ($categories as $category) {
-            $breakdown[$category->name] = (int) $category->getAttribute('products_count');
-        }
-
-        $uncategorized = Product::query()->whereNull('product_category_id')->count();
-
-        if ($uncategorized > 0) {
-            $breakdown['未分類'] = $uncategorized;
-        }
-
-        return $breakdown;
     }
 
     /**

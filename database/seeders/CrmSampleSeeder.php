@@ -32,7 +32,7 @@ class CrmSampleSeeder extends Seeder
         [DealStatus::Prospect, 6],
         [DealStatus::Proposing, 5],
         [DealStatus::Quoted, 4],
-        [DealStatus::Won, 7],
+        [DealStatus::Won, 16],
         [DealStatus::Lost, 3],
     ];
 
@@ -59,7 +59,8 @@ class CrmSampleSeeder extends Seeder
 
         foreach (self::DEAL_PLAN as [$status, $count]) {
             for ($i = 0; $i < $count; $i++) {
-                $this->createDeal($status, $partners, $employees, $products, $taxRatePercents);
+                // 今月の KPI が 0 にならないよう、受注のうち数件は当月に受注させる
+                $this->createDeal($status, $partners, $employees, $products, $taxRatePercents, $i < 3);
             }
         }
 
@@ -87,17 +88,21 @@ class CrmSampleSeeder extends Seeder
      * @param  Collection<int, Employee>  $employees
      * @param  Collection<int, Product>  $products
      * @param  array<int, int>  $taxRatePercents
+     * @param  bool  $orderedThisMonth  受注日を当月にするか
      */
-    private function createDeal(DealStatus $status, Collection $partners, Collection $employees, Collection $products, array $taxRatePercents): void
+    private function createDeal(DealStatus $status, Collection $partners, Collection $employees, Collection $products, array $taxRatePercents, bool $orderedThisMonth = false): void
     {
         /** @var Partner $partner */
         $partner = $partners->random();
 
         $contact = PartnerContact::query()->where('partner_id', $partner->id)->inRandomOrder()->first();
 
-        $orderedAt = $status === DealStatus::Won
-            ? fake()->dateTimeBetween('-4 months', '-1 week')->format('Y-m-d')
-            : null;
+        // 月次推移グラフが見えるよう、受注日は直近 14 か月に散らす
+        $orderedAt = match (true) {
+            $status !== DealStatus::Won => null,
+            $orderedThisMonth => fake()->dateTimeBetween(Carbon::now()->startOfMonth(), Carbon::now())->format('Y-m-d'),
+            default => fake()->dateTimeBetween('-14 months', '-1 month')->format('Y-m-d'),
+        };
 
         // 受注済みは「受注日 + 数週間」を納品予定日とし、未到来のものが受注残になるようにする
         $expectedCloseDate = $orderedAt !== null

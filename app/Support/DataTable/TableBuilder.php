@@ -137,6 +137,14 @@ class TableBuilder
                 continue;
             }
 
+            $values = $filter->valuesFor($value);
+
+            if ($values !== null) {
+                $query->whereIn($filter->column(), $values);
+
+                continue;
+            }
+
             $query->where($filter->column(), $filter->castValue($value));
         }
     }

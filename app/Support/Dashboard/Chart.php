@@ -45,6 +45,16 @@ class Chart
         return new self($id, 'bar', $title, $data, $datasetLabel);
     }
 
+    /**
+     * 推移を見せる折れ線グラフ。
+     *
+     * @param  array<string, int|float>  $data
+     */
+    public static function line(string $id, string $title, array $data, string $datasetLabel = ''): self
+    {
+        return new self($id, 'line', $title, $data, $datasetLabel);
+    }
+
     public function isEmpty(): bool
     {
         return $this->data === [] || array_sum($this->data) === 0;
@@ -61,17 +71,27 @@ class Chart
         $values = array_values($this->data);
         $colors = $this->colorsFor(count($values));
 
+        $dataset = [
+            'label' => $this->datasetLabel !== '' ? $this->datasetLabel : $this->title,
+            'data' => $values,
+            'backgroundColor' => $this->type === 'doughnut' ? $colors : $colors[0],
+            'borderWidth' => 0,
+            'borderRadius' => $this->type === 'bar' ? 4 : 0,
+        ];
+
+        if ($this->type === 'line') {
+            $dataset['borderColor'] = $colors[0];
+            $dataset['borderWidth'] = 2;
+            $dataset['tension'] = 0.3;
+            $dataset['fill'] = false;
+            $dataset['pointRadius'] = 3;
+        }
+
         return [
             'type' => $this->type,
             'data' => [
                 'labels' => $labels,
-                'datasets' => [[
-                    'label' => $this->datasetLabel !== '' ? $this->datasetLabel : $this->title,
-                    'data' => $values,
-                    'backgroundColor' => $this->type === 'bar' ? $colors[0] : $colors,
-                    'borderWidth' => 0,
-                    'borderRadius' => $this->type === 'bar' ? 4 : 0,
-                ]],
+                'datasets' => [$dataset],
             ],
             'options' => $this->options(),
         ];
@@ -93,9 +113,9 @@ class Chart
             ],
         ];
 
-        if ($this->type === 'bar') {
+        if ($this->type === 'bar' || $this->type === 'line') {
             $common['scales'] = [
-                // 件数を扱うので目盛りは整数のみ
+                // 件数・金額とも整数で扱うので目盛りは整数のみ
                 'y' => ['beginAtZero' => true, 'ticks' => ['precision' => 0]],
             ];
         }

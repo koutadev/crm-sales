@@ -84,7 +84,13 @@ class DealTable extends TableDefinition
     public function filters(): array
     {
         return [
-            new Filter('status', 'ステータス', DealStatus::options()),
+            new Filter(
+                name: 'status',
+                label: 'ステータス',
+                // ダッシュボードの KPI から「進行中だけ」を開けるよう、まとめた選択肢も用意する
+                options: ['open' => '進行中（受注・失注を除く）'] + DealStatus::options(),
+                valueGroups: ['open' => DealStatus::openValues()],
+            ),
             new Filter('partner_id', '顧客', $this->customerOptions()),
             new Filter('employee_id', '営業担当', $this->employeeOptions()),
         ];

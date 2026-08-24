@@ -255,6 +255,20 @@ class Deal extends BaseModel
         return static::$amountRecalculationSuspended;
     }
 
+    /**
+     * 受注残: 受注済みのうち、予定クローズ日(納品予定日)がまだ到来していない商談。
+     *
+     * 顧客詳細のサマリとダッシュボードで同じ定義を使うため、ここに 1 か所だけ置く。
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeBacklog(Builder $query): Builder
+    {
+        return $query->where('status', DealStatus::Won->value)
+            ->whereDate('expected_close_date', '>=', now()->toDateString());
+    }
+
     public function activityLogLabel(): ?string
     {
         return $this->code.' '.$this->title;

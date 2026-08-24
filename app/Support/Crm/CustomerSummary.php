@@ -31,10 +31,7 @@ class CustomerSummary
         return new self(
             wonTotal: (int) self::deals($partner)->won()->sum('amount_total'),
             openTotal: (int) self::deals($partner)->open()->sum('amount_total'),
-            backlogTotal: (int) self::deals($partner)
-                ->won()
-                ->whereDate('expected_close_date', '>=', now()->toDateString())
-                ->sum('amount_total'),
+            backlogTotal: (int) self::deals($partner)->backlog()->sum('amount_total'),
             dealCount: self::deals($partner)->count(),
             openCount: self::deals($partner)->open()->count(),
             wonCount: self::deals($partner)->won()->count(),
