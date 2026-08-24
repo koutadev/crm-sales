@@ -12,8 +12,8 @@
     </x-form-field>
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <x-form-field name="unit_price" label="標準単価" :required="true" help="税抜の標準単価を入力します。">
-            <x-text-input id="unit_price" name="unit_price" type="number" step="0.01" min="0"
+        <x-form-field name="unit_price" label="標準単価(税込)" :required="true" help="税込の標準単価を円単位(整数)で入力します。">
+            <x-text-input id="unit_price" name="unit_price" type="number" step="1" min="0"
                           class="mt-1 block w-full text-right"
                           :value="old('unit_price', $product->exists ? $product->unit_price : '0')" required />
         </x-form-field>

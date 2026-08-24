@@ -5,7 +5,7 @@
             <td class="px-4 py-3 font-medium">{{ $product->name }}</td>
             <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $product->category?->name ?? '—' }}</td>
             <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">
-                {{ number_format((float) $product->unit_price) }}
+                {{ number_format($product->unit_price) }}
             </td>
             <td class="whitespace-nowrap px-4 py-3 text-center text-gray-600 dark:text-gray-400">
                 @if ($product->taxRate)

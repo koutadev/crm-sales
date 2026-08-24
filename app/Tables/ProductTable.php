@@ -40,7 +40,7 @@ class ProductTable extends TableDefinition
             new Column('code', '商品コード', sortable: true, wrap: false),
             new Column('name', '商品名', sortable: true),
             new Column('product_category_id', '分類'),
-            new Column('unit_price', '標準単価', sortable: true, align: 'right', wrap: false),
+            new Column('unit_price', '標準単価(税込)', sortable: true, align: 'right', wrap: false),
             new Column('tax_rate_id', '税率', align: 'center', wrap: false),
             new Column('unit', '単位', align: 'center'),
             new Column('is_active', '状態', sortable: true, align: 'center'),

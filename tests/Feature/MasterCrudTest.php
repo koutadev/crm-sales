@@ -233,7 +233,7 @@ class MasterCrudTest extends TestCase
         $product = Product::query()->sole();
 
         $this->assertSame('PRD-0001', $product->code);
-        $this->assertSame('198000.00', $product->unit_price);
+        $this->assertSame(198000, $product->unit_price);
     }
 
     #[Test]

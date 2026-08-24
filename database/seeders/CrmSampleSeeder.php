@@ -12,7 +12,6 @@ use App\Models\Partner;
 use App\Models\PartnerContact;
 use App\Models\Product;
 use App\Models\TaxRate;
-use Database\Factories\DealItemFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -127,33 +126,24 @@ class CrmSampleSeeder extends Seeder
      */
     private function createItems(Deal $deal, Collection $products, array $taxRatePercents): void
     {
-        $total = 0;
-
-        foreach ($products->shuffle()->take(fake()->numberBetween(1, 3)) as $product) {
-            /** @var Product $product */
-            $quantity = fake()->numberBetween(1, 12);
-
-            // 商品マスタの単価は税込単価として扱う(共通基盤から引き継いだ decimal を整数化)
-            $unitPrice = (int) round((float) $product->unit_price);
-            $ratePercent = $taxRatePercents[(int) $product->tax_rate_id] ?? 10;
-
-            $item = DealItem::factory()->create(array_merge(
-                [
+        // 1 行ごとに合計を計算し直さず、最後にまとめて 1 回だけ計算する
+        Deal::withoutAmountRecalculation(function () use ($deal, $products, $taxRatePercents): void {
+            foreach ($products->shuffle()->take(fake()->numberBetween(1, 3)) as $product) {
+                /** @var Product $product */
+                DealItem::factory()->create([
                     'deal_id' => $deal->id,
                     'product_id' => $product->id,
                     'tax_rate_id' => $product->tax_rate_id,
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice,
-                    'tax_rate_percent' => $ratePercent,
-                ],
-                DealItemFactory::amounts($unitPrice * $quantity, $ratePercent),
-            ));
+                    'quantity' => fake()->numberBetween(1, 12),
+                    // 商品マスタの単価は税込単価(整数)
+                    'unit_price' => $product->unit_price,
+                    'tax_rate_percent' => $taxRatePercents[(int) $product->tax_rate_id] ?? 10,
+                ]);
+            }
+        });
 
-            $total += $item->amount_incl_tax;
-        }
-
-        // 合計の再計算は STEP 4 で実装する。ここでは明細と整合する値を入れておく
-        $deal->forceFill(['amount_total' => $total])->saveQuietly();
+        // 金額は明細から計算し直す(税率ごとに 1 回だけ切り捨て)
+        $deal->recalculateAmounts();
     }
 
     /**

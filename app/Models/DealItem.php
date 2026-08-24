@@ -34,6 +34,15 @@ class DealItem extends BaseModel
     /** @use HasFactory<DealItemFactory> */
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        // 明細が変われば商談の税込合計も変わる。
+        // どの経路(画面・シーダー・バッチ)から更新しても金額が合うようにモデル側で拾う。
+        static::saved(static fn (self $item) => $item->refreshDealAmounts());
+        static::deleted(static fn (self $item) => $item->refreshDealAmounts());
+        static::restored(static fn (self $item) => $item->refreshDealAmounts());
+    }
+
     protected $fillable = [
         'deal_id',
         'product_id',
@@ -88,6 +97,18 @@ class DealItem extends BaseModel
     public function taxRate(): BelongsTo
     {
         return $this->belongsTo(TaxRate::class);
+    }
+
+    /**
+     * 親の商談の金額を計算し直す。
+     */
+    private function refreshDealAmounts(): void
+    {
+        if (Deal::amountRecalculationSuspended()) {
+            return;
+        }
+
+        $this->deal?->recalculateAmounts();
     }
 
     public function activityLogLabel(): ?string

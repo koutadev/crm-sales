@@ -4,6 +4,7 @@ use App\Enums\PermissionName;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\Crm\CustomerContactController;
 use App\Http\Controllers\Crm\CustomerController;
+use App\Http\Controllers\Crm\DealController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Masters\DepartmentController;
 use App\Http\Controllers\Masters\EmployeeController;
@@ -70,6 +71,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('permission:'.PermissionName::MasterManage->value)->group(function () {
         Route::delete('customers/{id}', [CustomerController::class, 'destroy'])->whereNumber('id')->name('customers.destroy');
         Route::post('customers/{id}/restore', [CustomerController::class, 'restore'])->whereNumber('id')->name('customers.restore');
+
+        // 商談と明細(一覧・詳細は STEP 5)
+        Route::get('deals/create', [DealController::class, 'create'])->name('deals.create');
+        Route::post('deals', [DealController::class, 'store'])->name('deals.store');
+        Route::get('deals/{id}/edit', [DealController::class, 'edit'])->whereNumber('id')->name('deals.edit');
+        Route::put('deals/{id}', [DealController::class, 'update'])->whereNumber('id')->name('deals.update');
 
         // 担当者は顧客詳細のタブ内だけで扱う(独立画面は持たない)
         Route::post('customers/{id}/contacts', [CustomerContactController::class, 'store'])

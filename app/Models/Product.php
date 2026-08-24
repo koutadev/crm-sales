@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * 受発注の明細、EC の商品はこのテーブルを親として参照する想定。
  *
- * 税率は「これから使う標準税率」を持つだけで、金額の確定は行わない。
+ * 単価は税込(内税統一)。税率は「これから使う標準税率」を持つだけで、金額の確定は行わない。
  * 商談明細は明細作成時点の単価・税率(%)をコピー保持するため、
  * ここを変更しても確定済みの金額には影響しない。
  *
@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $code
  * @property string $name
  * @property int|null $product_category_id
- * @property string $unit_price
+ * @property int $unit_price
  * @property string|null $unit
  * @property int|null $tax_rate_id
  * @property-read ProductCategory|null $category
@@ -64,9 +64,9 @@ class Product extends BaseModel
      */
     protected function casts(): array
     {
-        // 通貨は誤差を避けるため decimal のまま扱う(float にしない)
+        // 内税統一のため、単価は「税込・整数(最小通貨単位)」で扱う
         return [
-            'unit_price' => 'decimal:2',
+            'unit_price' => 'integer',
         ];
     }
 

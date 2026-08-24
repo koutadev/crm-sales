@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Enums\DealStatus;
 use App\Models\Concerns\HasSequentialCode;
 use App\Support\Code\CodeGenerator;
+use App\Support\Crm\AmountSummary;
+use App\Support\Crm\TaxCalculator;
 use Database\Factories\DealFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -39,6 +41,9 @@ class Deal extends BaseModel
     use HasFactory;
 
     use HasSequentialCode;
+
+    /** 明細の一括入れ替え中など、金額の再計算を止めるか */
+    protected static bool $amountRecalculationSuspended = false;
 
     protected $fillable = [
         'partner_id',
@@ -181,6 +186,73 @@ class Deal extends BaseModel
     public function scopeWon(Builder $query): Builder
     {
         return $query->where('status', DealStatus::Won->value);
+    }
+
+    /**
+     * 明細から金額を計算し直して保存する(税込が正・税率ごとに 1 回だけ切り捨て)。
+     *
+     * 明細の追加・更新・削除のたびに呼ばれる(DealItem のモデルイベント)。
+     * 画面側の計算は表示補助で、保存される金額は必ずここを通る。
+     */
+    public function recalculateAmounts(): AmountSummary
+    {
+        $items = $this->items()->orderBy('id')->get()->values();
+
+        $summary = TaxCalculator::summarize($items->map(static fn (DealItem $item): array => [
+            'amount_incl_tax' => $item->unit_price * $item->quantity,
+            'tax_rate_percent' => $item->tax_rate_percent,
+        ])->all());
+
+        // 明細ごとの内訳を保存する。再計算がループしないようイベントは起こさない
+        foreach ($items as $position => $item) {
+            $line = $summary->lineAmounts[$position];
+
+            $item->forceFill([
+                'amount_incl_tax' => $line->amountInclTax,
+                'tax_amount' => $line->taxAmount,
+                'amount_excl_tax' => $line->amountExclTax,
+            ])->saveQuietly();
+        }
+
+        // 金額が変わったときだけ保存される(操作ログにも金額の変化として残る)
+        $this->forceFill(['amount_total' => $summary->totalInclTax()])->save();
+
+        return $summary;
+    }
+
+    /**
+     * 保存済みの明細から金額サマリを組み立てる(保存はしない・表示用)。
+     */
+    public function amountSummary(): AmountSummary
+    {
+        return TaxCalculator::summarize($this->items->map(static fn (DealItem $item): array => [
+            'amount_incl_tax' => $item->amount_incl_tax,
+            'tax_rate_percent' => $item->tax_rate_percent,
+        ])->all());
+    }
+
+    /**
+     * 明細をまとめて入れ替えるあいだ、1 行ごとの再計算を止める。
+     *
+     * @template TReturn
+     *
+     * @param  callable(): TReturn  $callback
+     * @return TReturn
+     */
+    public static function withoutAmountRecalculation(callable $callback): mixed
+    {
+        static::$amountRecalculationSuspended = true;
+
+        try {
+            return $callback();
+        } finally {
+            static::$amountRecalculationSuspended = false;
+        }
+    }
+
+    public static function amountRecalculationSuspended(): bool
+    {
+        return static::$amountRecalculationSuspended;
     }
 
     public function activityLogLabel(): ?string
