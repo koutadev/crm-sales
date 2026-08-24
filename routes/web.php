@@ -4,6 +4,7 @@ use App\Enums\PermissionName;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\Crm\CustomerContactController;
 use App\Http\Controllers\Crm\CustomerController;
+use App\Http\Controllers\Crm\DealActivityController;
 use App\Http\Controllers\Crm\DealController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Masters\DepartmentController;
@@ -66,17 +67,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('customers/{id}', [CustomerController::class, 'show'])
             ->whereNumber('id')
             ->name('customers.show');
+
+        Route::get('deals', [DealController::class, 'index'])->name('deals.index');
+        Route::get('deals/export', [DealController::class, 'export'])->name('deals.export');
+        Route::get('deals/{id}', [DealController::class, 'show'])->whereNumber('id')->name('deals.show');
     });
 
     Route::middleware('permission:'.PermissionName::MasterManage->value)->group(function () {
         Route::delete('customers/{id}', [CustomerController::class, 'destroy'])->whereNumber('id')->name('customers.destroy');
         Route::post('customers/{id}/restore', [CustomerController::class, 'restore'])->whereNumber('id')->name('customers.restore');
 
-        // 商談と明細(一覧・詳細は STEP 5)
+        // 商談と明細
         Route::get('deals/create', [DealController::class, 'create'])->name('deals.create');
         Route::post('deals', [DealController::class, 'store'])->name('deals.store');
         Route::get('deals/{id}/edit', [DealController::class, 'edit'])->whereNumber('id')->name('deals.edit');
         Route::put('deals/{id}', [DealController::class, 'update'])->whereNumber('id')->name('deals.update');
+        Route::delete('deals/{id}', [DealController::class, 'destroy'])->whereNumber('id')->name('deals.destroy');
+        Route::post('deals/{id}/restore', [DealController::class, 'restore'])->whereNumber('id')->name('deals.restore');
+
+        // 活動履歴は商談詳細の中だけで追加する
+        Route::post('deals/{id}/activities', [DealActivityController::class, 'store'])
+            ->whereNumber('id')
+            ->name('deals.activities.store');
 
         // 担当者は顧客詳細のタブ内だけで扱う(独立画面は持たない)
         Route::post('customers/{id}/contacts', [CustomerContactController::class, 'store'])

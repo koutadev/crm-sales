@@ -100,10 +100,11 @@ class DealFormTest extends TestCase
         $this->post(route('deals.store'), $this->payload([
             ['product_id' => $this->standardProduct->id, 'quantity' => 1, 'unit_price' => 1000],
             ['product_id' => $this->standardProduct->id, 'quantity' => 1, 'unit_price' => 1000],
-        ]))->assertRedirect(route('customers.show', ['id' => $this->customer->id, 'tab' => 'deals']));
+        ]))->assertRedirect(route('deals.show', Deal::query()->sole()->id));
 
         $deal = Deal::query()->sole();
 
+        // 保存後は商談詳細に戻る
         $this->assertStringStartsWith('DEAL-'.now()->format('Y').'-', $deal->code);
 
         // 税込 2,000 / 1.1 = 1,818.18… → 消費税 181.81… → 切り捨て 181

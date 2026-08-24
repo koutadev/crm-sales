@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers\Crm;
 
+use App\Enums\ActivityType;
 use App\Enums\DealStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Masters\MasterController;
 use App\Http\Requests\Crm\DealRequest;
 use App\Models\Deal;
 use App\Models\DealItem;
@@ -13,7 +14,13 @@ use App\Models\PartnerContact;
 use App\Models\Product;
 use App\Models\TaxRate;
 use App\Support\Crm\AmountSummary;
+use App\Support\Crm\DealListSummary;
 use App\Support\Crm\TaxCalculator;
+use App\Support\DataTable\Table;
+use App\Support\DataTable\TableBuilder;
+use App\Support\DataTable\TableDefinition;
+use App\Support\DataTable\TableState;
+use App\Tables\DealTable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,14 +28,79 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
- * 商談と明細の登録・編集。
+ * 商談の一覧・詳細と、商談・明細の登録・編集。
  *
+ * 一覧・CSV・論理削除・復元は共通のマスタ基盤(MasterController)をそのまま使う。
  * 金額は画面から受け取らず、明細の「税込単価 × 数量」からサーバ側で必ず計算する。
  * 明細は商品を選んだ時点の税込単価と税率(%)をコピーして保持し、
  * 以後に商品マスタ・税率マスタが変わっても確定済みの金額は動かない。
  */
-class DealController extends Controller
+class DealController extends MasterController
 {
+    protected function definition(): TableDefinition
+    {
+        return new DealTable;
+    }
+
+    protected function viewPath(): string
+    {
+        return 'crm.deals';
+    }
+
+    protected function modelClass(): string
+    {
+        return Deal::class;
+    }
+
+    protected function resourceLabel(): string
+    {
+        return '商談';
+    }
+
+    /**
+     * 一覧。上部に「絞り込み結果に連動した金額サマリ」を出す。
+     */
+    public function index(Request $request): View
+    {
+        $definition = $this->definition();
+        $canManageDeleted = $this->canManageDeleted($request);
+
+        $state = TableState::resolve($request, $definition, $canManageDeleted);
+        $builder = new TableBuilder($definition, $state);
+
+        $table = new Table($definition, $state, $builder->paginate(), $canManageDeleted);
+
+        return view($this->viewPath().'.index', array_merge($this->sharedViewData(), [
+            'table' => $table,
+            'summary' => DealListSummary::for($builder),
+        ]));
+    }
+
+    /**
+     * 詳細(商談情報 + 明細 + 金額内訳 + 活動履歴)。
+     */
+    public function show(Request $request, int $id): View
+    {
+        $deal = Deal::query()
+            ->when($this->canManageDeleted($request), fn ($query) => $query->withTrashed())
+            ->with(['partner', 'partnerContact', 'employee', 'items.product', 'items.taxRate'])
+            ->findOrFail($id);
+
+        return view($this->viewPath().'.show', array_merge($this->sharedViewData(), [
+            'deal' => $deal,
+            'summary' => $deal->amountSummary(),
+            'activities' => $deal->activities()
+                ->with('employee:id,name')
+                ->orderByDesc('activity_at')
+                ->orderByDesc('id')
+                ->limit(100)
+                ->get(),
+            'employeeOptions' => Employee::query()->active()->orderBy('code')->pluck('name', 'id')->all(),
+            'defaultEmployeeId' => Employee::query()->where('user_id', $request->user()?->id)->value('id'),
+            'activityTypeOptions' => ActivityType::options(),
+        ]));
+    }
+
     public function create(Request $request): View
     {
         $deal = new Deal([
@@ -58,7 +130,7 @@ class DealController extends Controller
             return $deal;
         });
 
-        return $this->backToCustomer($deal, '商談 '.$deal->code.' を登録しました。');
+        return $this->backToDeal($deal, '商談 '.$deal->code.' を登録しました。');
     }
 
     public function edit(int $id): View
@@ -84,7 +156,7 @@ class DealController extends Controller
             $deal->recalculateAmounts();
         });
 
-        return $this->backToCustomer($deal, '商談 '.$deal->code.' を更新しました。');
+        return $this->backToDeal($deal, '商談 '.$deal->code.' を更新しました。');
     }
 
     /**
@@ -282,12 +354,12 @@ class DealController extends Controller
     }
 
     /**
-     * 保存後は顧客詳細の商談タブに戻る(商談一覧・詳細は STEP 5)。
+     * 保存後は商談詳細へ。
      */
-    private function backToCustomer(Deal $deal, string $message): RedirectResponse
+    private function backToDeal(Deal $deal, string $message): RedirectResponse
     {
         return redirect()
-            ->route('customers.show', ['id' => $deal->partner_id, 'tab' => 'deals'])
+            ->route('deals.show', $deal->id)
             ->with('status', $message);
     }
 }

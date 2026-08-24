@@ -41,6 +41,10 @@
                         <x-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')">
                             顧客
                         </x-nav-link>
+
+                        <x-nav-link :href="route('deals.index')" :active="request()->routeIs('deals.*')">
+                            商談
+                        </x-nav-link>
                     @endcan
 
                     @can(PermissionName::MasterView->value)
@@ -140,6 +144,10 @@
             @can(PermissionName::MasterView->value)
                 <x-responsive-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')">
                     顧客
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('deals.index')" :active="request()->routeIs('deals.*')">
+                    商談
                 </x-responsive-nav-link>
             @endcan
 

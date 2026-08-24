@@ -33,7 +33,7 @@ class CsvExporter
 
             $this->writeRow($handle, array_map(
                 static fn (Column $column): string => $column->label,
-                $this->definition->columns(),
+                $this->definition->csvColumns(),
             ));
 
             foreach ($this->builder->lazy() as $model) {

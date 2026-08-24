@@ -28,7 +28,7 @@ class TableBuilder
      */
     public function paginate(): LengthAwarePaginator
     {
-        return $this->apply($this->definition->query())
+        return $this->filteredQuery()
             ->paginate(
                 perPage: $this->definition->perPage(),
                 page: $this->state->page,
@@ -43,7 +43,20 @@ class TableBuilder
      */
     public function lazy(): LazyCollection
     {
-        return $this->apply($this->definition->query())->lazy();
+        return $this->filteredQuery()->lazy();
+    }
+
+    /**
+     * 検索・絞り込み・並び順を適用した(ページングしない)クエリ。
+     *
+     * 一覧の上部に「絞り込み結果の合計」を出すときなど、
+     * 表示条件に連動した集計を 1 クエリで取りたい場合に使う。
+     *
+     * @return Builder<covariant Model>
+     */
+    public function filteredQuery(): Builder
+    {
+        return $this->apply($this->definition->query());
     }
 
     /**

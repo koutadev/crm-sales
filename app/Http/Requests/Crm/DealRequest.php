@@ -23,14 +23,16 @@ class DealRequest extends MasterRequest
         $isWon = $this->input('status') === DealStatus::Won->value;
 
         return [
-            'partner_id' => ['required', Rule::exists('partners', 'id')->whereNull('deleted_at')],
+            'partner_id' => ['bail', 'required', 'integer', Rule::exists('partners', 'id')->whereNull('deleted_at')],
             'partner_contact_id' => [
+                'bail',
                 'nullable',
+                'integer',
                 Rule::exists('partner_contacts', 'id')
                     ->whereNull('deleted_at')
                     ->where('partner_id', $this->input('partner_id')),
             ],
-            'employee_id' => ['required', Rule::exists('employees', 'id')->whereNull('deleted_at')],
+            'employee_id' => ['bail', 'required', 'integer', Rule::exists('employees', 'id')->whereNull('deleted_at')],
             'title' => ['required', 'string', 'max:191'],
             'status' => ['required', Rule::enum(DealStatus::class)],
             'probability' => ['required', 'integer', 'min:0', 'max:100'],
@@ -39,7 +41,7 @@ class DealRequest extends MasterRequest
 
             'items' => $isWon ? ['required', 'array', 'min:1', 'max:100'] : ['nullable', 'array', 'max:100'],
             'items.*.id' => ['nullable', 'integer'],
-            'items.*.product_id' => ['required', Rule::exists('products', 'id')->whereNull('deleted_at')],
+            'items.*.product_id' => ['bail', 'required', 'integer', Rule::exists('products', 'id')->whereNull('deleted_at')],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
             'items.*.unit_price' => ['required', 'integer', 'min:0', 'max:99999999999'],
         ];

@@ -48,13 +48,16 @@
                         {{ $deal->employee?->name ?? '—' }}
                     </td>
                     <td class="whitespace-nowrap px-4 py-3 text-right">
+                        <a href="{{ route('deals.show', $deal->id) }}"
+                           class="text-xs font-medium text-primary-text hover:text-primary-hover">
+                            詳細
+                        </a>
+
                         @can(\App\Enums\PermissionName::MasterManage->value)
                             <a href="{{ route('deals.edit', $deal->id) }}"
-                               class="text-xs font-medium text-primary-text hover:text-primary-hover">
+                               class="ms-3 text-xs font-medium text-primary-text hover:text-primary-hover">
                                 編集
                             </a>
-                        @else
-                            <span class="text-xs text-gray-400">&mdash;</span>
                         @endcan
                     </td>
                 </tr>

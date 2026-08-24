@@ -91,6 +91,19 @@ abstract class TableDefinition
     }
 
     /**
+     * CSV に出す列。既定は画面と同じ並び。
+     *
+     * 画面には出さない内訳(金額の内訳など)を CSV にだけ足したいときに上書きする。
+     * 上書きした場合は toCsvRow() の並びもこちらに合わせること。
+     *
+     * @return list<Column>
+     */
+    public function csvColumns(): array
+    {
+        return $this->columns();
+    }
+
+    /**
      * CSV 出力を提供するか。false にすると一覧から CSV ボタンが消える。
      */
     public function exportable(): bool

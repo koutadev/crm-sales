@@ -17,8 +17,10 @@ class EmployeeRequest extends MasterRequest
         return [
             'name' => ['required', 'string', 'max:100'],
 
-            'department_id' => ['nullable', Rule::exists('departments', 'id')->whereNull('deleted_at')],
-            'position_id' => ['nullable', Rule::exists('positions', 'id')->whereNull('deleted_at')],
+            // bail + integer は、数値でない値のまま exists へ渡して
+            // PostgreSQL の型エラー(500)になるのを防ぐため
+            'department_id' => ['bail', 'nullable', 'integer', Rule::exists('departments', 'id')->whereNull('deleted_at')],
+            'position_id' => ['bail', 'nullable', 'integer', Rule::exists('positions', 'id')->whereNull('deleted_at')],
 
             // 論理削除されたレコードのメールは再利用できるようにする
             'email' => [
@@ -29,7 +31,9 @@ class EmployeeRequest extends MasterRequest
             'employment_status' => ['required', Rule::enum(EmploymentStatus::class)],
 
             'user_id' => [
+                'bail',
                 'nullable',
+                'integer',
                 Rule::exists('users', 'id'),
                 Rule::unique('employees', 'user_id')->ignore($id)->whereNull('deleted_at'),
             ],
