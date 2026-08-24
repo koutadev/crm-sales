@@ -38,6 +38,12 @@
                     @endcan
 
                     @can(PermissionName::MasterView->value)
+                        <x-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')">
+                            顧客
+                        </x-nav-link>
+                    @endcan
+
+                    @can(PermissionName::MasterView->value)
                         <div class="flex items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
@@ -128,6 +134,12 @@
             @can(PermissionName::DashboardView->value)
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+            @endcan
+
+            @can(PermissionName::MasterView->value)
+                <x-responsive-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')">
+                    顧客
                 </x-responsive-nav-link>
             @endcan
 

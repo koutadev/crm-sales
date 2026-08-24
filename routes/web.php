@@ -2,6 +2,8 @@
 
 use App\Enums\PermissionName;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Crm\CustomerContactController;
+use App\Http\Controllers\Crm\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Masters\DepartmentController;
 use App\Http\Controllers\Masters\EmployeeController;
@@ -54,6 +56,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/activity-logs', [ActivityLogController::class, 'index'])
         ->middleware('permission:'.PermissionName::ActivityLogView->value)
         ->name('activity-logs.index');
+
+    // --- CRM: 顧客(会社 + 担当者) ----------------------------------------
+    // 参照系は master.view、更新系は master.manage(基盤の権限をそのまま使う)
+    Route::middleware('permission:'.PermissionName::MasterView->value)->group(function () {
+        Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
+        Route::get('customers/export', [CustomerController::class, 'export'])->name('customers.export');
+        Route::get('customers/{id}', [CustomerController::class, 'show'])
+            ->whereNumber('id')
+            ->name('customers.show');
+    });
+
+    Route::middleware('permission:'.PermissionName::MasterManage->value)->group(function () {
+        Route::delete('customers/{id}', [CustomerController::class, 'destroy'])->whereNumber('id')->name('customers.destroy');
+        Route::post('customers/{id}/restore', [CustomerController::class, 'restore'])->whereNumber('id')->name('customers.restore');
+
+        // 担当者は顧客詳細のタブ内だけで扱う(独立画面は持たない)
+        Route::post('customers/{id}/contacts', [CustomerContactController::class, 'store'])
+            ->whereNumber('id')
+            ->name('customers.contacts.store');
+        Route::put('customers/{id}/contacts/{contact}', [CustomerContactController::class, 'update'])
+            ->whereNumber(['id', 'contact'])
+            ->name('customers.contacts.update');
+    });
 
     // --- 共通マスタ -------------------------------------------------------
     // 一覧 / CSV は master.view、登録・編集・削除・復元は master.manage が必要

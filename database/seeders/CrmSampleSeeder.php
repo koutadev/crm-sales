@@ -14,6 +14,7 @@ use App\Models\Product;
 use App\Models\TaxRate;
 use Database\Factories\DealItemFactory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -99,13 +100,18 @@ class CrmSampleSeeder extends Seeder
             ? fake()->dateTimeBetween('-4 months', '-1 week')->format('Y-m-d')
             : null;
 
+        // 受注済みは「受注日 + 数週間」を納品予定日とし、未到来のものが受注残になるようにする
+        $expectedCloseDate = $orderedAt !== null
+            ? Carbon::parse($orderedAt)->addDays(fake()->numberBetween(0, 120))->toDateString()
+            : fake()->dateTimeBetween('-1 month', '+4 months')->format('Y-m-d');
+
         $deal = Deal::factory()->create([
             'partner_id' => $partner->id,
             'partner_contact_id' => $contact?->id,
             'employee_id' => $employees->random()->id,
             'status' => $status,
             'probability' => $this->probabilityFor($status),
-            'expected_close_date' => $orderedAt ?? fake()->dateTimeBetween('-1 month', '+4 months')->format('Y-m-d'),
+            'expected_close_date' => $expectedCloseDate,
             'ordered_at' => $orderedAt,
         ]);
 
