@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Masters;
 
+use App\Enums\PermissionName;
 use App\Http\Controllers\Controller;
 use App\Models\BaseModel;
 use App\Support\DataTable\CsvExporter;
@@ -9,6 +10,7 @@ use App\Support\DataTable\Table;
 use App\Support\DataTable\TableBuilder;
 use App\Support\DataTable\TableDefinition;
 use App\Support\DataTable\TableState;
+use App\Support\Ui\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -47,14 +49,111 @@ abstract class MasterController extends Controller
      */
     abstract protected function resourceLabel(): string;
 
+    /**
+     * モーダルの詳細に出す項目。
+     *
+     * 空を返すと詳細モーダルを使わない一覧として扱う(行クリックの導線を出さない)。
+     *
+     * @return array<string, string|null> [見出し => 値]
+     */
+    protected function detailRows(BaseModel $record): array
+    {
+        return [];
+    }
+
+    /**
+     * 登録・編集フォームに渡すデータ(選択肢など)。
+     *
+     * フルページのフォームとモーダル編集で共有する。
+     *
+     * @return array<string, mixed>
+     */
+    protected function formData(BaseModel $record): array
+    {
+        return $this->sharedViewData();
+    }
+
+    /**
+     * 入力項目のビュー(フルページとモーダルで共有する部分)。
+     */
+    protected function fieldsView(): string
+    {
+        return $this->viewPath().'.fields';
+    }
+
     public function index(Request $request): View
     {
         $table = Table::make($this->definition(), $request, $this->canManageDeleted($request));
 
         return view($this->viewPath().'.index', array_merge(
             $this->sharedViewData(),
-            ['table' => $table],
+            [
+                'table' => $table,
+                // バリデーションエラーで戻ってきたときは、その行の詳細を開いた状態で描画する
+                'initialDetail' => $this->initialDetail(),
+            ],
         ));
+    }
+
+    /**
+     * 一覧の行クリックで開くモーダルの中身(HTML の断片)。
+     */
+    public function detail(Request $request, int $id): View
+    {
+        $record = $this->modelClass()::query()
+            ->when($this->canManageDeleted($request), fn ($query) => $query->withTrashed())
+            ->findOrFail($id);
+
+        // 詳細の定義が無い一覧では使わない
+        abort_if($this->detailRows($record) === [], 404);
+
+        return view('masters._detail', $this->detailData($record));
+    }
+
+    /**
+     * 直前の送信がモーダルの編集フォームだった場合の、描き直す詳細。
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function initialDetail(): ?array
+    {
+        $id = old('_modal_record');
+
+        if (! is_numeric($id)) {
+            return null;
+        }
+
+        $record = $this->modelClass()::query()->withTrashed()->find((int) $id);
+
+        return $record === null ? null : $this->detailData($record);
+    }
+
+    /**
+     * 詳細モーダルに渡すデータ。
+     *
+     * @return array<string, mixed>
+     */
+    protected function detailData(BaseModel $record): array
+    {
+        return array_merge($this->sharedViewData(), $this->formData($record), [
+            'record' => $record,
+            'rows' => $this->detailRows($record),
+            'fieldsView' => $this->fieldsView(),
+            'canManage' => request()->user()?->can(PermissionName::MasterManage->value) ?? false,
+            'detailTitle' => $this->detailTitle($record),
+        ]);
+    }
+
+    /**
+     * モーダルの見出し。
+     */
+    protected function detailTitle(BaseModel $record): string
+    {
+        $name = $record->getAttribute('name');
+
+        return is_string($name) && $name !== ''
+            ? $this->resourceLabel().' — '.$name
+            : $this->resourceLabel().'の詳細';
     }
 
     /**
@@ -80,7 +179,7 @@ abstract class MasterController extends Controller
 
         return redirect()
             ->route($this->definition()->routeName().'.index')
-            ->with('status', $this->resourceLabel().'を削除しました。');
+            ->with(Toast::SESSION_KEY, Toast::success($this->resourceLabel().'を削除しました。'));
     }
 
     /**
@@ -96,7 +195,7 @@ abstract class MasterController extends Controller
 
         return redirect()
             ->route($this->definition()->routeName().'.index')
-            ->with('status', $this->resourceLabel().'を復元しました。');
+            ->with(Toast::SESSION_KEY, Toast::success($this->resourceLabel().'を復元しました。'));
     }
 
     /**
@@ -132,6 +231,6 @@ abstract class MasterController extends Controller
     {
         return redirect()
             ->route($this->definition()->routeName().'.index')
-            ->with('status', $message);
+            ->with(Toast::SESSION_KEY, Toast::success($message));
     }
 }

@@ -4,11 +4,18 @@ namespace App\Providers;
 
 use App\Models\ActivityLog;
 use App\Models\BaseModel;
+use App\Support\Crm\CrmMasterCatalog;
+use App\Support\Crm\CrmNavigationMenu;
+use App\Support\Masters\MasterCatalog;
+use App\Support\Navigation\NavigationMenu;
+use App\Support\Ui\Contracts\HolidayProvider;
+use App\Support\Ui\NullHolidayProvider;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
@@ -19,7 +26,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // カレンダーの「特別な日(祝日など)」。既定は何も返さない実装。
+        // 祝日をハイライトしたくなったら、ここを差し替える。
+        $this->app->bind(HolidayProvider::class, NullHolidayProvider::class);
+
+        // 左サイドナビとマスタ管理ハブの中身を CRM 用に差し替える
+        $this->app->bind(NavigationMenu::class, CrmNavigationMenu::class);
+        $this->app->bind(MasterCatalog::class, CrmMasterCatalog::class);
     }
 
     /**
@@ -28,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerBlueprintMacros();
+        $this->configurePagination();
         $this->configureModels();
         $this->registerAuthenticationLogging();
     }
@@ -58,6 +72,15 @@ class AppServiceProvider extends ServiceProvider
             $this->boolean('is_active')->default(true)->index();
             $this->auditColumns();
         });
+    }
+
+    /**
+     * ページネーションの見た目を共通部品に差し替える。
+     */
+    protected function configurePagination(): void
+    {
+        Paginator::defaultView('pagination.app');
+        Paginator::defaultSimpleView('pagination.simple');
     }
 
     protected function configureModels(): void

@@ -13,6 +13,7 @@ class Column
      * @param  bool  $sortable  見出しクリックで並び替えできるか
      * @param  string  $align  'left' | 'right' | 'center'
      * @param  bool  $wrap  折り返しを許可するか(false なら 1 行で表示)
+     * @param  string|null  $width  列幅の Tailwind クラス(例: 'w-32')。null なら中身に合わせる
      */
     public function __construct(
         public readonly string $key,
@@ -20,7 +21,25 @@ class Column
         public readonly bool $sortable = false,
         public readonly string $align = 'left',
         public readonly bool $wrap = true,
+        public readonly ?string $width = null,
     ) {}
+
+    /**
+     * 配列からも作れるようにする(定義クラスを使わない画面向け)。
+     *
+     * @param  array<string, mixed>  $definition
+     */
+    public static function fromArray(array $definition): self
+    {
+        return new self(
+            key: (string) ($definition['key'] ?? ''),
+            label: (string) ($definition['label'] ?? ''),
+            sortable: (bool) ($definition['sortable'] ?? false),
+            align: (string) ($definition['align'] ?? 'left'),
+            wrap: (bool) ($definition['wrap'] ?? true),
+            width: isset($definition['width']) ? (string) $definition['width'] : null,
+        );
+    }
 
     public static function make(string $key, string $label): self
     {

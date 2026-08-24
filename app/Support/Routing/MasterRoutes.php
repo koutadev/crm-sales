@@ -23,6 +23,11 @@ class MasterRoutes
         Route::middleware('permission:'.PermissionName::MasterView->value)->group(function () use ($uri, $controller, $name): void {
             Route::get($uri, [$controller, 'index'])->name($name.'.index');
             Route::get($uri.'/export', [$controller, 'export'])->name($name.'.export');
+
+            // 一覧の行クリックで開くモーダルの中身(HTML の断片)
+            Route::get($uri.'/{id}/detail', [$controller, 'detail'])
+                ->whereNumber('id')
+                ->name($name.'.detail');
         });
 
         Route::middleware('permission:'.PermissionName::MasterManage->value)->group(function () use ($uri, $controller, $name): void {

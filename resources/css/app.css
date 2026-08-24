@@ -11,6 +11,21 @@
 }
 
 /*
+ * 「視差効果を減らす」設定の端末ではアニメーションを止める。
+ * 個別の motion-reduce: ユーティリティに加えて、全体の保険としてここでも打ち消す。
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/*
  * テーマの配色。
  *
  * --color-primary / --color-accent の実際の値は config/theme.php から

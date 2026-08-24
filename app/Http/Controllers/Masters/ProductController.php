@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Masters;
 
 use App\Http\Requests\Masters\ProductRequest;
+use App\Models\BaseModel;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\TaxRate;
@@ -60,10 +61,29 @@ class ProductController extends MasterController
     }
 
     /**
+     * @return array<string, string|null>
+     */
+    protected function detailRows(BaseModel $record): array
+    {
+        /** @var Product $record */
+        return [
+            '商品コード' => $record->code,
+            '商品名' => $record->name,
+            '分類' => $record->category?->name,
+            '標準単価(税込)' => number_format($record->unit_price),
+            '税率' => $record->taxRate?->label(),
+            '単位' => $record->unit,
+            '状態' => $record->activeLabel(),
+            '最終更新' => $record->updated_at?->format('Y/m/d H:i'),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
-    private function formData(Product $product): array
+    protected function formData(BaseModel $product): array
     {
+        /** @var Product $product */
         // 新規登録時は既定の標準税率を初期選択にしておく(未選択で保存しても同じ税率が入る)
         if (! $product->exists && $product->tax_rate_id === null) {
             $product->tax_rate_id = TaxRate::standard()?->id;

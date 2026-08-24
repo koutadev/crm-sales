@@ -87,9 +87,23 @@ abstract class SimpleMasterController extends MasterController
     }
 
     /**
+     * @return array<string, string|null>
+     */
+    protected function detailRows(BaseModel $record): array
+    {
+        return [
+            $this->codeLabel() => $record->getAttribute('code'),
+            $this->nameLabel() => $record->getAttribute('name'),
+            '状態' => $record->activeLabel(),
+            '登録日時' => $record->created_at?->format('Y/m/d H:i'),
+            '最終更新' => $record->updated_at?->format('Y/m/d H:i'),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
-    private function formData(BaseModel $record): array
+    protected function formData(BaseModel $record): array
     {
         return array_merge($this->sharedViewData(), ['record' => $record]);
     }

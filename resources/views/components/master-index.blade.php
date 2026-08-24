@@ -2,6 +2,7 @@
     'table',
     'resourceLabel',
     'routeName',
+    'initialDetail' => null,
 ])
 
 {{--
@@ -31,6 +32,9 @@
             <x-data-table :table="$table">
                 {{ $slot }}
             </x-data-table>
+
+            {{-- 行クリックで開く詳細・編集モーダルと、削除の確認ダイアログ --}}
+            <x-master-detail-modal :initial-detail="$initialDetail" :resource-label="$resourceLabel" />
         </div>
     </div>
 </x-app-layout>

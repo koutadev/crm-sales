@@ -6,7 +6,6 @@
 @php
     /** @var \App\Support\DataTable\Table $table */
     $state = $table->state;
-    $columnCount = count($table->columns()) + ($actions ? 1 : 0);
 @endphp
 
 <div class="space-y-4">
@@ -93,52 +92,16 @@
         </div>
     </div>
 
-    {{-- 一覧 --}}
-    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-900/40">
-                <tr>
-                    @foreach ($table->columns() as $column)
-                        <th scope="col" class="px-4 py-3 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 {{ $column->alignClass() }}">
-                            @if ($column->sortable)
-                                <a href="{{ $table->sortUrl($column) }}"
-                                   class="inline-flex items-center gap-1 hover:text-gray-800 dark:hover:text-gray-100">
-                                    {{ $column->label }}
-                                    <span class="text-[10px]">{{ $table->sortIndicator($column) }}</span>
-                                </a>
-                            @else
-                                {{ $column->label }}
-                            @endif
-                        </th>
-                    @endforeach
+    {{-- 一覧(共通のテーブル部品に載せる) --}}
+    <x-table :columns="$table->columns()"
+             :sort="$state->sort"
+             :direction="$state->direction"
+             :sort-url="fn (\App\Support\DataTable\Column $column): string => $table->sortUrl($column)"
+             :actions="$actions"
+             :is-empty="$table->isEmpty()"
+             :empty="$state->hasConditions() ? '条件に一致するデータがありません。' : 'データが登録されていません。'">
+        {{ $slot }}
+    </x-table>
 
-                    @if ($actions)
-                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                            操作
-                        </th>
-                    @endif
-                </tr>
-            </thead>
-
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                @if ($table->isEmpty())
-                    <tr>
-                        <td colspan="{{ $columnCount }}" class="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
-                            @if ($state->hasConditions())
-                                条件に一致するデータがありません。
-                            @else
-                                データが登録されていません。
-                            @endif
-                        </td>
-                    </tr>
-                @else
-                    {{ $slot }}
-                @endif
-            </tbody>
-        </table>
-    </div>
-
-    <div>
-        {{ $table->paginator->onEachSide(1)->links() }}
-    </div>
+    <x-pagination :paginator="$table->paginator" />
 </div>

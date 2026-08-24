@@ -15,7 +15,7 @@
 
             <x-data-table :table="$table">
                 @foreach ($table->items() as $user)
-                    <tr>
+                    <x-table.row>
                         <td class="px-4 py-3 font-medium">{{ $user->name }}</td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $user->email }}</td>
                         <td class="px-4 py-3">
@@ -36,7 +36,7 @@
                                 ロールを変更
                             </a>
                         </td>
-                    </tr>
+                    </x-table.row>
                 @endforeach
             </x-data-table>
         </div>

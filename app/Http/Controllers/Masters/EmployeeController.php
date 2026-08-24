@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Masters;
 
 use App\Enums\EmploymentStatus;
 use App\Http\Requests\Masters\EmployeeRequest;
+use App\Models\BaseModel;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Position;
@@ -63,10 +64,31 @@ class EmployeeController extends MasterController
     }
 
     /**
+     * @return array<string, string|null>
+     */
+    protected function detailRows(BaseModel $record): array
+    {
+        /** @var Employee $record */
+        return [
+            '社員コード' => $record->code,
+            '氏名' => $record->name,
+            '部署' => $record->department?->name,
+            '役職' => $record->position?->name,
+            'メールアドレス' => $record->email,
+            '在籍状態' => $record->employment_status->label(),
+            'ログインユーザー' => $record->user?->name,
+            '状態' => $record->activeLabel(),
+            '登録日時' => $record->created_at?->format('Y/m/d H:i'),
+            '最終更新' => $record->updated_at?->format('Y/m/d H:i'),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
-    private function formData(Employee $employee): array
+    protected function formData(BaseModel $employee): array
     {
+        /** @var Employee $employee */
         return array_merge($this->sharedViewData(), [
             'employee' => $employee,
             'departmentOptions' => Department::query()->active()->orderBy('code')->pluck('name', 'id')->all(),

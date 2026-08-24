@@ -110,7 +110,7 @@ class DealController extends MasterController
             'expected_close_date' => now()->addMonth()->toDateString(),
         ]);
 
-        return view('crm.deals.form', $this->formData($deal, []));
+        return view('crm.deals.form', $this->dealFormData($deal, []));
     }
 
     public function store(DealRequest $request): RedirectResponse
@@ -137,7 +137,7 @@ class DealController extends MasterController
     {
         $deal = Deal::query()->with('items')->findOrFail($id);
 
-        return view('crm.deals.form', $this->formData($deal, $this->itemRows($deal)));
+        return view('crm.deals.form', $this->dealFormData($deal, $this->itemRows($deal)));
     }
 
     public function update(DealRequest $request, int $id): RedirectResponse
@@ -302,7 +302,7 @@ class DealController extends MasterController
      * @param  list<array<string, mixed>>  $itemRows
      * @return array<string, mixed>
      */
-    private function formData(Deal $deal, array $itemRows): array
+    private function dealFormData(Deal $deal, array $itemRows): array
     {
         $products = Product::query()->active()->orderBy('code')->get();
 

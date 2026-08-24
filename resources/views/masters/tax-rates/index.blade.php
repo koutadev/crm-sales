@@ -1,6 +1,7 @@
-<x-master-index :table="$table" :resource-label="$resourceLabel" :route-name="$routeName">
+<x-master-index :table="$table" :resource-label="$resourceLabel" :route-name="$routeName" :initial-detail="$initialDetail ?? null">
     @foreach ($table->items() as $taxRate)
-        <tr class="{{ $taxRate->trashed() ? 'opacity-60' : '' }}">
+        <x-table.row :muted="$taxRate->trashed()"
+                     :detail-url="route($routeName.'.detail', $taxRate->id)">
             <td class="px-4 py-3 font-medium">{{ $taxRate->name }}</td>
             <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ $taxRate->rate_percent }}%</td>
             <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-400">
@@ -14,6 +15,6 @@
             </td>
 
             <x-master-row-actions :record="$taxRate" :route-name="$routeName" :resource-label="$resourceLabel" />
-        </tr>
+        </x-table.row>
     @endforeach
 </x-master-index>

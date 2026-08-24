@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Masters;
 use App\Enums\EntityType;
 use App\Enums\PartnerType;
 use App\Http\Requests\Masters\PartnerRequest;
+use App\Models\BaseModel;
 use App\Models\Partner;
 use App\Support\DataTable\TableDefinition;
 use App\Tables\PartnerTable;
@@ -60,10 +61,31 @@ class PartnerController extends MasterController
     }
 
     /**
+     * @return array<string, string|null>
+     */
+    protected function detailRows(BaseModel $record): array
+    {
+        /** @var Partner $record */
+        return [
+            '取引先コード' => $record->code,
+            '取引先名' => $record->name,
+            '取引先区分' => $record->partner_type->label(),
+            '法人 / 個人' => $record->entity_type->label(),
+            'メールアドレス' => $record->email,
+            '電話番号' => $record->phone,
+            '郵便番号' => $record->postal_code,
+            '住所' => $record->address,
+            '状態' => $record->activeLabel(),
+            '最終更新' => $record->updated_at?->format('Y/m/d H:i'),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
-    private function formData(Partner $partner): array
+    protected function formData(BaseModel $partner): array
     {
+        /** @var Partner $partner */
         return array_merge($this->sharedViewData(), [
             'partner' => $partner,
             'partnerTypeOptions' => PartnerType::options(),

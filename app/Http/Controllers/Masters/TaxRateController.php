@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Masters;
 
 use App\Http\Requests\Masters\TaxRateRequest;
+use App\Models\BaseModel;
 use App\Models\TaxRate;
 use App\Support\DataTable\TableDefinition;
 use App\Tables\TaxRateTable;
@@ -58,10 +59,27 @@ class TaxRateController extends MasterController
     }
 
     /**
+     * @return array<string, string|null>
+     */
+    protected function detailRows(BaseModel $record): array
+    {
+        /** @var TaxRate $record */
+        return [
+            '税率名' => $record->name,
+            '税率' => $record->rate_percent.'%',
+            '適用開始日' => $record->effective_from->format('Y/m/d'),
+            '状態' => $record->activeLabel(),
+            '登録日時' => $record->created_at?->format('Y/m/d H:i'),
+            '最終更新' => $record->updated_at?->format('Y/m/d H:i'),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
-    private function formData(TaxRate $taxRate): array
+    protected function formData(BaseModel $taxRate): array
     {
+        /** @var TaxRate $taxRate */
         return array_merge($this->sharedViewData(), ['taxRate' => $taxRate]);
     }
 }
