@@ -126,7 +126,10 @@ class DealTable extends TableDefinition
      */
     private function customerOptions(): array
     {
-        return Partner::query()->customers()->orderBy('code')->pluck('name', 'id')->all();
+        return $this->cachedOptions(
+            'customers',
+            static fn (): array => Partner::query()->customers()->orderBy('code')->pluck('name', 'id')->all(),
+        );
     }
 
     /**
@@ -134,6 +137,9 @@ class DealTable extends TableDefinition
      */
     private function employeeOptions(): array
     {
-        return Employee::query()->active()->orderBy('code')->pluck('name', 'id')->all();
+        return $this->cachedOptions(
+            'employees',
+            static fn (): array => Employee::query()->active()->orderBy('code')->pluck('name', 'id')->all(),
+        );
     }
 }

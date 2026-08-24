@@ -86,7 +86,10 @@ class EmployeeTable extends TableDefinition
      */
     private function departmentOptions(): array
     {
-        return Department::query()->orderBy('code')->pluck('name', 'id')->all();
+        return $this->cachedOptions(
+            'departments',
+            static fn (): array => Department::query()->orderBy('code')->pluck('name', 'id')->all(),
+        );
     }
 
     /**
@@ -94,6 +97,9 @@ class EmployeeTable extends TableDefinition
      */
     private function positionOptions(): array
     {
-        return Position::query()->orderBy('code')->pluck('name', 'id')->all();
+        return $this->cachedOptions(
+            'positions',
+            static fn (): array => Position::query()->orderBy('code')->pluck('name', 'id')->all(),
+        );
     }
 }

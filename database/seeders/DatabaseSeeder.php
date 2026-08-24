@@ -19,6 +19,10 @@ class DatabaseSeeder extends Seeder
 
         // 動作確認用のデータは本番以外のみ
         if (! app()->isProduction()) {
+            // デモの数字とスクリーンショットを再現できるよう、乱数を固定する
+            fake()->seed(20260824);
+            mt_srand(20260824);
+
             $this->call([
                 DemoUserSeeder::class,
                 MasterSampleSeeder::class,

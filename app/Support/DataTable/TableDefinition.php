@@ -16,6 +16,29 @@ use Illuminate\Database\Eloquent\Model;
 abstract class TableDefinition
 {
     /**
+     * 絞り込みの選択肢のキャッシュ。
+     *
+     * @var array<string, array<array-key, string>>
+     */
+    private array $optionCache = [];
+
+    /**
+     * 絞り込みの選択肢を、この定義インスタンスの中で 1 回だけ取得する。
+     *
+     * filters() は「表示条件の解決」「画面の描画」「クエリへの適用」で複数回呼ばれるため、
+     * 素直にマスタを引くと同じ選択肢のクエリが何度も飛ぶ。
+     *
+     *   return [new Filter('employee_id', '担当', $this->cachedOptions('employees', fn () => …))];
+     *
+     * @param  callable(): array<array-key, string>  $resolver
+     * @return array<array-key, string>
+     */
+    protected function cachedOptions(string $key, callable $resolver): array
+    {
+        return $this->optionCache[$key] ??= $resolver();
+    }
+
+    /**
      * 一覧の識別子。検索条件をセッションに保存するキーにも使う。
      */
     abstract public function key(): string;

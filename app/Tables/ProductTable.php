@@ -87,7 +87,10 @@ class ProductTable extends TableDefinition
      */
     private function categoryOptions(): array
     {
-        return ProductCategory::query()->orderBy('code')->pluck('name', 'id')->all();
+        return $this->cachedOptions(
+            'categories',
+            static fn (): array => ProductCategory::query()->orderBy('code')->pluck('name', 'id')->all(),
+        );
     }
 
     /**
@@ -95,6 +98,6 @@ class ProductTable extends TableDefinition
      */
     private function taxRateOptions(): array
     {
-        return TaxRate::options();
+        return $this->cachedOptions('tax_rates', static fn (): array => TaxRate::options());
     }
 }
