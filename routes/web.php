@@ -6,6 +6,7 @@ use App\Http\Controllers\Crm\CustomerContactController;
 use App\Http\Controllers\Crm\CustomerController;
 use App\Http\Controllers\Crm\DealActivityController;
 use App\Http\Controllers\Crm\DealController;
+use App\Http\Controllers\Crm\DealStatusController;
 use App\Http\Controllers\Crm\OptionsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Masters\DepartmentController;
@@ -98,6 +99,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('deals/{id}', [DealController::class, 'update'])->whereNumber('id')->name('deals.update');
         Route::delete('deals/{id}', [DealController::class, 'destroy'])->whereNumber('id')->name('deals.destroy');
         Route::post('deals/{id}/restore', [DealController::class, 'restore'])->whereNumber('id')->name('deals.restore');
+
+        // カンバンでカードを動かしたときの、ステータスだけの更新
+        Route::patch('deals/{id}/status', [DealStatusController::class, 'update'])
+            ->whereNumber('id')
+            ->name('deals.status.update');
 
         // 活動履歴は商談詳細の中だけで追加する
         Route::post('deals/{id}/activities', [DealActivityController::class, 'store'])

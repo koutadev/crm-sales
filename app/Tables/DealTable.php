@@ -35,6 +35,12 @@ class DealTable extends TableDefinition
      */
     private const MAX_STATIC_OPTIONS = 100;
 
+    /** 一覧の見せ方(表 / カンバン)。 */
+    public const VIEW_MODES = [
+        'table' => '一覧',
+        'kanban' => 'カンバン',
+    ];
+
     /** 確度の絞り込み(「この値以上」で絞る)。 */
     public const PROBABILITY_STEPS = [
         '90' => '90% 以上',
@@ -139,7 +145,7 @@ class DealTable extends TableDefinition
      */
     public function statefulParameters(): array
     {
-        return ['period_basis', 'period_preset', 'period_from', 'period_to', 'probability_min'];
+        return ['period_basis', 'period_preset', 'period_from', 'period_to', 'probability_min', 'view_mode'];
     }
 
     public function applyExtraFilters(Builder $query, TableState $state): void
@@ -164,6 +170,16 @@ class DealTable extends TableDefinition
             $state->extra('period_from'),
             $state->extra('period_to'),
         );
+    }
+
+    /**
+     * 見せ方(不正な値や未指定は表に寄せる)。
+     */
+    public static function viewMode(TableState $state): string
+    {
+        $mode = $state->extra('view_mode');
+
+        return array_key_exists($mode, self::VIEW_MODES) ? $mode : 'table';
     }
 
     /**

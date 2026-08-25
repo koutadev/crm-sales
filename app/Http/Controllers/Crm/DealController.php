@@ -14,6 +14,7 @@ use App\Models\PartnerContact;
 use App\Models\Product;
 use App\Models\TaxRate;
 use App\Support\Crm\AmountSummary;
+use App\Support\Crm\DealKanban;
 use App\Support\Crm\DealListSummary;
 use App\Support\Crm\TaxCalculator;
 use App\Support\DataTable\Table;
@@ -23,6 +24,7 @@ use App\Support\DataTable\TableState;
 use App\Tables\DealTable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -59,6 +61,9 @@ class DealController extends MasterController
 
     /**
      * 一覧。上部に「絞り込み結果に連動した金額サマリ」を出す。
+     *
+     * 表とカンバン(パイプライン)を切り替えられる。絞り込みは共通で、
+     * カンバンでも同じ条件・同じ集計をそのまま使う。
      */
     public function index(Request $request): View
     {
@@ -67,16 +72,26 @@ class DealController extends MasterController
 
         $state = TableState::resolve($request, $definition, $canManageDeleted);
         $builder = new TableBuilder($definition, $state);
+        $summary = DealListSummary::for($builder);
 
-        $table = new Table($definition, $state, $builder->paginate(), $canManageDeleted);
+        $mode = DealTable::viewMode($state);
+
+        // カンバンはページングしないので、件数だけサマリから借りた入れ物を渡す
+        $paginator = $mode === 'kanban'
+            ? new LengthAwarePaginator([], $summary->dealCount, $definition->perPage(), 1)
+            : $builder->paginate();
+
+        $table = new Table($definition, $state, $paginator, $canManageDeleted);
 
         // 期間フィルタの入力欄に戻す値(相対プリセットはここでも現在日から計算される)
         $range = DealTable::dateRangeFrom($state);
         $basis = DealTable::basisColumn($state->extra('period_basis'));
 
-        return view($this->viewPath().'.index', array_merge($this->sharedViewData(), [
+        return view($this->viewPath().'.'.($mode === 'kanban' ? 'kanban' : 'index'), array_merge($this->sharedViewData(), [
             'table' => $table,
-            'summary' => DealListSummary::for($builder),
+            'summary' => $summary,
+            'viewMode' => $mode,
+            'kanban' => $mode === 'kanban' ? DealKanban::for($builder, $summary) : null,
             'probabilityMin' => $state->extra('probability_min'),
             'period' => [
                 'basis' => $basis,

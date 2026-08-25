@@ -1,24 +1,13 @@
-@php
-    use App\Support\Dashboard\Kpi;
-
-    /** @var \App\Support\Crm\DealListSummary $summary */
-    // 絞り込み結果に連動した集計(金額はすべて税込)
-    $kpis = [
-        new Kpi(label: '件数', value: $summary->dealCount, unit: '件',
-                note: $summary->dealCount > 0 ? '平均 '.number_format($summary->averageInclTax()).' 円' : '該当なし'),
-        new Kpi(label: '合計(税込)', value: $summary->totalInclTax, unit: '円', note: '表示中の商談の合計'),
-        new Kpi(label: '受注済み(税込)', value: $summary->wonTotal, unit: '円', note: '確定した売上'),
-        new Kpi(label: '加重見込み(税込)', value: $summary->weightedOpenTotal, unit: '円',
-                note: '進行中 '.number_format($summary->openTotal).' 円 × 確度'),
-    ];
-@endphp
-
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                商談一覧
-            </h2>
+            <div class="flex flex-wrap items-center gap-3">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+                    商談一覧
+                </h2>
+
+                @include('crm.deals._view-switch')
+            </div>
 
             @can(\App\Enums\PermissionName::MasterManage->value)
                 <a href="{{ route('deals.create') }}"
@@ -33,74 +22,11 @@
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             <x-flash />
 
-            {{-- 絞り込み結果に連動する金額サマリ --}}
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                @foreach ($kpis as $kpi)
-                    <x-kpi-card :kpi="$kpi" />
-                @endforeach
-            </div>
-
-            {{-- ステータス別の内訳(金額 / 件数を切り替え。どちらも同じ 1 クエリの結果) --}}
-            <div class="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800"
-                 x-data="{ measure: 'amount' }">
-                <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
-                    <h3 class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                        ステータス別の内訳
-                    </h3>
-
-                    <div class="inline-flex rounded-md border border-gray-300 p-0.5 text-xs dark:border-gray-700"
-                         role="radiogroup" aria-label="内訳の表示単位">
-                        @foreach (['amount' => '金額', 'count' => '件数'] as $value => $label)
-                            <button type="button"
-                                    role="radio"
-                                    :aria-checked="(measure === '{{ $value }}').toString()"
-                                    x-on:click="measure = '{{ $value }}'"
-                                    :class="measure === '{{ $value }}'
-                                        ? 'bg-primary text-white'
-                                        : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
-                                    class="rounded px-3 py-1 font-medium transition-colors motion-reduce:transition-none">
-                                {{ $label }}
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div x-show="measure === 'amount'">
-                    <x-stacked-bar unit=" 円" :segments="$summary->statusSegments('amount')"
-                                   empty="表示中の商談がありません。" />
-                </div>
-
-                <div x-show="measure === 'count'" x-cloak>
-                    <x-stacked-bar unit=" 件" :segments="$summary->statusSegments('count')"
-                                   empty="表示中の商談がありません。" />
-                </div>
-            </div>
+            @include('crm.deals._summary')
 
             <x-data-table :table="$table">
-                {{-- 期間フィルタ(基準日を切り替えて絞り込む) --}}
                 <x-slot name="extraFilters">
-                    <x-form.segment name="period_basis" label="基準日"
-                                    :options="$period['basisOptions']"
-                                    :selected="$period['basis']" />
-
-                    <div>
-                        <label for="probability_min" class="block text-xs font-medium text-gray-600 dark:text-gray-400">確度</label>
-                        <select id="probability_min" name="probability_min"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 sm:text-sm">
-                            <option value="">すべて</option>
-                            @foreach (\App\Tables\DealTable::PROBABILITY_STEPS as $value => $label)
-                                <option value="{{ $value }}" @selected($probabilityMin === (string) $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="min-w-56">
-                        <x-date-range name="period" label="期間"
-                                      :basis-label="$period['basisLabel']"
-                                      :preset="$period['preset']"
-                                      :from="$period['from']"
-                                      :to="$period['to']" />
-                    </div>
+                    @include('crm.deals._filters')
                 </x-slot>
 
                 @foreach ($table->items() as $deal)
