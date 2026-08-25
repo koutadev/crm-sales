@@ -29,7 +29,27 @@ class Chart
         public readonly string $datasetLabel = '',
         /** @var list<string> 目盛りとは別に、ツールチップへ出す表示(空なら目盛りのまま) */
         public readonly array $tooltipLabels = [],
+        /** @var array{label: string, data: array<string, int|float>}|null 重ねて見せる比較系列(目標など) */
+        public readonly ?array $comparison = null,
     ) {}
+
+    /**
+     * 目標などの比較系列を重ねる(破線で描画される)。
+     *
+     * @param  array<string, int|float>  $data  [ラベル => 値]。本系列と同じ並び
+     */
+    public function withComparison(string $label, array $data): self
+    {
+        return new self(
+            $this->id,
+            $this->type,
+            $this->title,
+            $this->data,
+            $this->datasetLabel,
+            $this->tooltipLabels,
+            ['label' => $label, 'data' => $data],
+        );
+    }
 
     /**
      * 目盛りは短く、ツールチップでは正式名称を出す。
@@ -42,7 +62,7 @@ class Chart
      */
     public function withTooltipLabels(array $labels): self
     {
-        return new self($this->id, $this->type, $this->title, $this->data, $this->datasetLabel, $labels);
+        return new self($this->id, $this->type, $this->title, $this->data, $this->datasetLabel, $labels, $this->comparison);
     }
 
     /**
@@ -54,13 +74,21 @@ class Chart
             return $this->title.'：表示できるデータがありません。';
         }
 
+        $comparison = $this->comparison;
+
         $parts = [];
         $labels = array_keys($this->data);
         $values = array_values($this->data);
 
         foreach ($labels as $index => $label) {
             $name = $this->tooltipLabels[$index] ?? (string) $label;
-            $parts[] = $name.' '.number_format($values[$index]);
+            $part = $name.' '.number_format($values[$index]);
+
+            if ($comparison !== null) {
+                $part .= '（'.$comparison['label'].' '.number_format($comparison['data'][$label] ?? 0).'）';
+            }
+
+            $parts[] = $part;
         }
 
         return $this->title.'：'.implode('、', $parts);
@@ -106,7 +134,8 @@ class Chart
     {
         $labels = array_keys($this->data);
         $values = array_values($this->data);
-        $colors = $this->colorsFor(count($values));
+        // 比較系列があるときは色を 2 本ぶん確保する
+        $colors = $this->colorsFor(max(2, count($values)));
 
         $dataset = [
             'label' => $this->datasetLabel !== '' ? $this->datasetLabel : $this->title,
@@ -124,9 +153,30 @@ class Chart
             $dataset['pointRadius'] = 3;
         }
 
+        $datasets = [$dataset];
+
+        if ($this->comparison !== null) {
+            // 目標などの比較系列。実績と見分けられるよう破線にする
+            $datasets[] = [
+                'label' => $this->comparison['label'],
+                'type' => 'line',
+                'data' => array_map(
+                    fn (string $label): int|float => $this->comparison['data'][$label] ?? 0,
+                    $labels,
+                ),
+                'borderColor' => $colors[1] ?? $colors[0],
+                'backgroundColor' => 'transparent',
+                'borderWidth' => 2,
+                'borderDash' => [6, 4],
+                'pointRadius' => 0,
+                'fill' => false,
+                'tension' => 0,
+            ];
+        }
+
         $data = [
             'labels' => $labels,
-            'datasets' => [$dataset],
+            'datasets' => $datasets,
         ];
 
         if ($this->tooltipLabels !== []) {
@@ -151,7 +201,8 @@ class Chart
             'maintainAspectRatio' => false,
             'plugins' => [
                 'legend' => [
-                    'display' => $this->type === 'doughnut',
+                    // 比較系列(目標)があるときは、どちらの線か分かるよう凡例を出す
+                    'display' => $this->type === 'doughnut' || $this->comparison !== null,
                     'position' => 'bottom',
                 ],
             ],

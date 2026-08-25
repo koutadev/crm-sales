@@ -8,6 +8,7 @@ use App\Support\Crm\DealHeadline;
 use App\Support\Crm\DealMetrics;
 use App\Support\Crm\OrganizationSales;
 use App\Support\Crm\PipelineRow;
+use App\Support\Crm\SalesTargetLookup;
 use App\Support\Dashboard\Chart;
 use App\Support\Dashboard\Kpi;
 use Illuminate\Http\Request;
@@ -41,6 +42,8 @@ class DashboardController extends Controller
                 'charts' => [],
                 'pipeline' => [],
                 'organizationSales' => null,
+                'targets' => null,
+                'fiscalLabel' => null,
                 'recentActivities' => $canViewLogs ? $this->recentActivities() : null,
             ]);
         }
@@ -50,12 +53,19 @@ class DashboardController extends Controller
         $salesByEmployee = DealMetrics::salesByEmployee();
         $pipeline = DealMetrics::pipeline();
 
+        // 予実(目標は独立テーブル。実績はこれまでの受注集計をそのまま使う)
+        [$fiscalStart, $fiscalEnd] = $this->fiscalYearRange();
+        $targets = SalesTargetLookup::build(Carbon::now(), $fiscalStart, $fiscalEnd);
+        $organizationSales = OrganizationSales::build(Carbon::now(), $targets, $fiscalStart, $fiscalEnd);
+
         return view('dashboard', [
             'kpis' => $this->kpis($headline),
-            'charts' => $this->charts($monthlySales, $salesByEmployee, $pipeline),
+            'charts' => $this->charts($monthlySales, $salesByEmployee, $pipeline, $targets),
             'pipeline' => $pipeline,
             // 組織別(地域 > エリア > 店舗 > 担当者)。担当者の所属をたどって積み上げる
-            'organizationSales' => OrganizationSales::build(),
+            'organizationSales' => $organizationSales,
+            'targets' => $targets,
+            'fiscalLabel' => $fiscalStart->year.'年度',
             'recentActivities' => $canViewLogs ? $this->recentActivities() : null,
         ]);
     }
@@ -109,7 +119,7 @@ class DashboardController extends Controller
      * @param  list<PipelineRow>  $pipeline
      * @return list<Chart>
      */
-    private function charts(array $monthlySales, array $salesByEmployee, array $pipeline): array
+    private function charts(array $monthlySales, array $salesByEmployee, array $pipeline, ?SalesTargetLookup $targets = null): array
     {
         $pipelineAmounts = [];
 
@@ -120,8 +130,17 @@ class DashboardController extends Controller
         // 担当者の軸ラベルは苗字だけにして、正式名称はツールチップと読み上げに残す
         [$employeeLabels, $employeeFullNames] = $this->shortenPersonNames($salesByEmployee);
 
+        // 月次推移には全社目標を破線で重ねる(ギャップが見えるように)
+        $monthlyTargets = [];
+
+        foreach (array_keys($monthlySales) as $label) {
+            // 実績は 'Y/m'、目標は 'Y-m' で持っているのでここで合わせる
+            $monthlyTargets[$label] = $targets?->companySeries()[str_replace('/', '-', (string) $label)] ?? 0;
+        }
+
         return [
-            Chart::line('monthly-sales', '月次売上推移（受注日ベース・税込）', $monthlySales, '受注金額'),
+            Chart::line('monthly-sales', '月次売上推移（受注日ベース・税込）', $monthlySales, '受注金額')
+                ->withComparison('全社目標', $monthlyTargets),
             Chart::bar('sales-by-employee', '担当者別の売上（受注・税込）', $employeeLabels, '受注金額')
                 ->withTooltipLabels($employeeFullNames),
             Chart::bar('pipeline-amount', 'ステータス別の商談金額（税込）', $pipelineAmounts, '商談金額'),
@@ -158,6 +177,25 @@ class DashboardController extends Controller
         }
 
         return [$shortened, $fullNames];
+    }
+
+    /**
+     * 年度（4 月始まり）の範囲。
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function fiscalYearRange(): array
+    {
+        $startMonth = (int) config('ui.fiscal_year_start_month', 4);
+        $today = Carbon::now();
+
+        $start = $today->copy()->startOfMonth()->month($startMonth);
+
+        if ($today->month < $startMonth) {
+            $start = $start->subYear();
+        }
+
+        return [$start, $start->copy()->addYear()->subMonth()->endOfMonth()];
     }
 
     /**

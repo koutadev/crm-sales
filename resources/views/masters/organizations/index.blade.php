@@ -10,14 +10,19 @@
                 </span>
             </td>
 
-            {{-- 階層が分かるよう、深さぶん字下げして名前を出す --}}
+            {{-- 階層が分かるよう、深さぶん字下げして名前を出す(記号の幅を固定して縦を揃える) --}}
             <td class="px-4 py-3 font-medium">
-                <span style="padding-inline-start: {{ ($organization->type->depth() - 1) * 1.25 }}rem">
-                    @if ($organization->type->depth() > 1)
-                        <span class="me-1 text-gray-300 dark:text-gray-600" aria-hidden="true">└</span>
-                    @endif
-                    {{ $organization->name }}
+                <span class="flex items-center"
+                      style="padding-inline-start: {{ ($organization->type->depth() - 1) * 1.5 }}rem">
+                    <span class="inline-block w-4 shrink-0 text-gray-300 dark:text-gray-600" aria-hidden="true">
+                        {{ $organization->type->depth() > 1 ? '└' : '' }}
+                    </span>
+                    <span class="truncate">{{ $organization->name }}</span>
                 </span>
+            </td>
+
+            <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-400">
+                {{ $organization->prefecture ?? '—' }}
             </td>
 
             <td class="px-4 py-3 text-gray-600 dark:text-gray-400">

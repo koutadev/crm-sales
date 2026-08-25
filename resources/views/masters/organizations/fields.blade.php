@@ -22,4 +22,18 @@
     </x-form-field>
 </div>
 
+{{-- 都道府県は店舗だけ。種別に合わせて出し入れする --}}
+<div x-data="{ type: @js(old('type', $organization->type?->value ?? \App\Enums\OrganizationType::Store->value)) }"
+     x-on:change="type = $event.target.name === 'type' ? $event.target.value : type">
+    <div x-show="type === @js(\App\Enums\OrganizationType::Store->value)" x-cloak>
+        <x-form-field name="prefecture" label="都道府県"
+                      help="店舗の所在地です。都道府県別の売上を見るときに使います。">
+            <x-form.combobox name="prefecture"
+                             :options="$prefectureOptions"
+                             :selected="old('prefecture', $organization->prefecture)"
+                             placeholder="都道府県名で検索" />
+        </x-form-field>
+    </div>
+</div>
+
 <x-active-checkbox :record="$organization" />

@@ -2,6 +2,8 @@
 
 namespace App\Support\Crm;
 
+use App\Support\Ui\Achievement;
+
 /**
  * 組織別売上ツリーの 1 ノード（地域・エリア・店舗・担当者）。
  *
@@ -22,7 +24,21 @@ class OrganizationSalesNode
         public readonly int $amountInclTax,
         public readonly int $dealCount,
         public readonly array $children = [],
+        /** 当月の実績(税込)。予実の達成率に使う */
+        public readonly int $monthAmount = 0,
+        /** 当月の目標(税込)。0 なら未設定 */
+        public readonly int $monthTarget = 0,
+        /** 都道府県(店舗のみ)。都道府県別に束ねるときに使う */
+        public readonly ?string $prefecture = null,
     ) {}
+
+    /**
+     * 当月の達成率。
+     */
+    public function achievement(): Achievement
+    {
+        return Achievement::of($this->monthAmount, $this->monthTarget);
+    }
 
     public function hasChildren(): bool
     {

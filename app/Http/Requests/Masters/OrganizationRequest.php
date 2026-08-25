@@ -4,6 +4,7 @@ namespace App\Http\Requests\Masters;
 
 use App\Enums\OrganizationType;
 use App\Models\Organization;
+use App\Support\Masters\Prefecture;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -29,6 +30,8 @@ class OrganizationRequest extends MasterRequest
                 'integer',
                 Rule::exists('organizations', 'id')->whereNull('deleted_at'),
             ],
+            // 都道府県は店舗だけが持つ
+            'prefecture' => ['nullable', 'string', Rule::in(Prefecture::names())],
             'is_active' => ['boolean'],
         ];
     }
@@ -40,6 +43,10 @@ class OrganizationRequest extends MasterRequest
 
             if ($type === null) {
                 return;
+            }
+
+            if ($type !== OrganizationType::Store && $this->filled('prefecture')) {
+                $validator->errors()->add('prefecture', '都道府県は店舗にだけ設定できます。');
             }
 
             $parentId = $this->input('parent_id');
@@ -80,6 +87,7 @@ class OrganizationRequest extends MasterRequest
         return [
             'name' => '組織名',
             'type' => '種別',
+            'prefecture' => '都道府県',
             'parent_id' => '上位組織',
             'is_active' => '状態',
         ];

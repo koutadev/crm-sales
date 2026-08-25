@@ -32,6 +32,7 @@ class CrmNavigationMenu extends NavigationMenu
             new NavSection('マスタ', [
                 new NavItem('マスタ管理', 'masters.index', 'masters', PermissionName::MasterView, 'masters.index'),
                 new NavItem('税率', 'masters.tax-rates.index', 'categories', PermissionName::MasterView, 'masters.tax-rates.*', hidden: true),
+                new NavItem('売上目標', 'masters.sales-targets.index', 'dashboard', PermissionName::MasterView, 'masters.sales-targets.*', hidden: true),
                 new NavItem('組織', 'masters.organizations.index', 'departments', PermissionName::MasterView, 'masters.organizations.*', hidden: true),
                 new NavItem('社員', 'masters.employees.index', 'employees', PermissionName::MasterView, 'masters.employees.*', hidden: true),
                 new NavItem('取引先', 'masters.partners.index', 'partners', PermissionName::MasterView, 'masters.partners.*', hidden: true),

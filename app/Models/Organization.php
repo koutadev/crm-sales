@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $code
  * @property string $name
  * @property OrganizationType $type
+ * @property string|null $prefecture
  * @property int|null $parent_id
  * @property-read Organization|null $parent
  * @property-read Collection<int, Organization> $children
@@ -36,6 +37,7 @@ class Organization extends BaseModel
     protected $fillable = [
         'name',
         'type',
+        'prefecture',
         'parent_id',
         'is_active',
     ];
@@ -88,6 +90,17 @@ class Organization extends BaseModel
     public function scopeOfType(Builder $query, OrganizationType $type): Builder
     {
         return $query->where('type', $type->value);
+    }
+
+    /**
+     * 都道府県で絞る（店舗にだけ入っている）。
+     *
+     * @param  Builder<Organization>  $query
+     * @return Builder<Organization>
+     */
+    public function scopeInPrefecture(Builder $query, string $prefecture): Builder
+    {
+        return $query->where('prefecture', $prefecture);
     }
 
     /**

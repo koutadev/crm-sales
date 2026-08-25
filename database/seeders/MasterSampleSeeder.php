@@ -175,19 +175,40 @@ class MasterSampleSeeder extends Seeder
      */
     private function createOrganizations(): array
     {
-        /** @var array<string, array<string, list<string>>> $tree */
+        // [店舗名 => 所在都道府県]。同じ都道府県に複数店舗があるケースも入れてある
+        /** @var array<string, array<string, array<string, string>>> $tree */
         $tree = [
             '東日本地域' => [
-                '首都圏エリア' => ['東京本店', '横浜支店', 'さいたま支店'],
-                '北関東エリア' => ['大宮支店', '宇都宮支店'],
+                '首都圏エリア' => [
+                    '東京本店' => '東京都',
+                    '東京西支店' => '東京都',
+                    '横浜支店' => '神奈川県',
+                    'さいたま支店' => '埼玉県',
+                ],
+                '北関東エリア' => [
+                    '大宮支店' => '埼玉県',
+                    '宇都宮支店' => '栃木県',
+                ],
             ],
             '中日本地域' => [
-                '東海エリア' => ['名古屋支店', '静岡支店'],
-                '北陸エリア' => ['金沢支店'],
+                '東海エリア' => [
+                    '名古屋支店' => '愛知県',
+                    '静岡支店' => '静岡県',
+                ],
+                '北陸エリア' => [
+                    '金沢支店' => '石川県',
+                ],
             ],
             '西日本地域' => [
-                '関西エリア' => ['大阪支店', '神戸支店', '京都支店'],
-                '九州エリア' => ['福岡支店'],
+                '関西エリア' => [
+                    '大阪本店' => '大阪府',
+                    '大阪南支店' => '大阪府',
+                    '神戸支店' => '兵庫県',
+                    '京都支店' => '京都府',
+                ],
+                '九州エリア' => [
+                    '福岡支店' => '福岡県',
+                ],
             ],
         ];
 
@@ -208,10 +229,11 @@ class MasterSampleSeeder extends Seeder
                     'is_active' => true,
                 ]);
 
-                foreach ($storeNames as $storeName) {
+                foreach ($storeNames as $storeName => $prefecture) {
                     $stores[] = Organization::create([
                         'name' => $storeName,
                         'type' => OrganizationType::Store,
+                        'prefecture' => $prefecture,
                         'parent_id' => $area->id,
                         'is_active' => true,
                     ]);

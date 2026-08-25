@@ -8,6 +8,7 @@ use App\Http\Controllers\Crm\DealActivityController;
 use App\Http\Controllers\Crm\DealController;
 use App\Http\Controllers\Crm\DealStatusController;
 use App\Http\Controllers\Crm\OptionsController;
+use App\Http\Controllers\Crm\SalesTargetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Masters\DepartmentController;
 use App\Http\Controllers\Masters\EmployeeController;
@@ -140,6 +141,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // CRM 固有のマスタ
         MasterRoutes::register('tax-rates', TaxRateController::class, 'tax-rates');
+
+        // 売上目標(予実管理の「予」)
+        MasterRoutes::register('sales-targets', SalesTargetController::class, 'sales-targets');
+        Route::post('sales-targets/duplicate', [SalesTargetController::class, 'duplicate'])
+            ->middleware('permission:'.PermissionName::MasterManage->value)
+            ->name('sales-targets.duplicate');
     });
 
     // --- ユーザー管理(ロールの付け替え) ----------------------------------

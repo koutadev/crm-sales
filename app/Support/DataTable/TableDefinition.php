@@ -114,6 +114,20 @@ abstract class TableDefinition
     }
 
     /**
+     * 並び替えを定義側で行う。
+     *
+     * 階層順のように、単純な 1 カラムの order by では表せない並びを扱いたい場合に使う。
+     * 自前で並べたときは true を返すと、共通の order by は行われない。
+     *
+     * @param  Builder<covariant Model>  $query
+     * @param  string  $direction  'asc' | 'desc'
+     */
+    public function applySort(Builder $query, string $sort, string $direction): bool
+    {
+        return false;
+    }
+
+    /**
      * 保存ビュー(マイビュー)を使える一覧か。
      *
      * 有効にすると、絞り込みの組み合わせに名前を付けて保存し、

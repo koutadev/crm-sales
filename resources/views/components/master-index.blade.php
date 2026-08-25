@@ -16,12 +16,19 @@
                 {{ $resourceLabel }}マスタ
             </h2>
 
-            @can(\App\Enums\PermissionName::MasterManage->value)
-                <a href="{{ route($routeName.'.create') }}"
-                   class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-primary-hover">
-                    {{ $resourceLabel }}を新規登録
-                </a>
-            @endcan
+            <div class="flex flex-wrap items-center gap-3">
+                {{-- マスタ固有のボタン(一括複製など)を足したいときはこのスロットへ --}}
+                @isset($headerActions)
+                    {{ $headerActions }}
+                @endisset
+
+                @can(\App\Enums\PermissionName::MasterManage->value)
+                    <a href="{{ route($routeName.'.create') }}"
+                       class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-primary-hover">
+                        {{ $resourceLabel }}を新規登録
+                    </a>
+                @endcan
+            </div>
         </div>
     </x-slot>
 

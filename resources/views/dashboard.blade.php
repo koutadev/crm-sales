@@ -58,6 +58,11 @@
                 </div>
             @endif
 
+            {{-- 予実(当月・年度の達成率) --}}
+            @if ($organizationSales !== null && $targets !== null)
+                @include('crm.dashboard.target-progress')
+            @endif
+
             {{-- 組織別(地域 > エリア > 店舗 > 担当者)の売上 --}}
             @if ($organizationSales !== null)
                 @include('crm.dashboard.organization-sales')

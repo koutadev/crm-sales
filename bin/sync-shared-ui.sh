@@ -47,6 +47,7 @@ PATHS=(
     "database/factories/OrganizationFactory.php"
     "database/migrations/2026_08_25_200000_create_organizations_table.php"
     "database/migrations/2026_08_25_200100_add_organization_id_to_employees_table.php"
+    "database/migrations/2026_08_26_100000_add_prefecture_to_organizations_table.php"
     "resources/views/masters/organizations"
     "app/Http/Controllers/SavedViewController.php"
     "app/Http/Requests/SavedViewRequest.php"

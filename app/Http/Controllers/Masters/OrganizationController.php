@@ -7,6 +7,7 @@ use App\Http\Requests\Masters\OrganizationRequest;
 use App\Models\BaseModel;
 use App\Models\Organization;
 use App\Support\DataTable\TableDefinition;
+use App\Support\Masters\Prefecture;
 use App\Tables\OrganizationTable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -69,6 +70,7 @@ class OrganizationController extends MasterController
             '組織コード' => $record->code,
             '種別' => $record->type->label(),
             '組織名' => $record->name,
+            '都道府県' => $record->prefecture,
             '上位組織' => $record->parent?->name,
             '階層' => $record->path(),
             '所属社員' => number_format($record->employees()->count()).' 名',
@@ -87,6 +89,7 @@ class OrganizationController extends MasterController
         return array_merge($this->sharedViewData(), [
             'organization' => $organization,
             'typeOptions' => OrganizationType::options(),
+            'prefectureOptions' => Prefecture::options(),
             // 上位に選べるのは地域とエリアだけ(店舗の下は作らない)
             'parentOptions' => Organization::query()
                 ->active()

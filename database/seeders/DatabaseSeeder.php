@@ -27,6 +27,8 @@ class DatabaseSeeder extends Seeder
                 DemoUserSeeder::class,
                 MasterSampleSeeder::class,
                 CrmSampleSeeder::class,
+                // 目標は実績を元に作るので、商談のあとに流す
+                SalesTargetSeeder::class,
             ]);
         }
     }

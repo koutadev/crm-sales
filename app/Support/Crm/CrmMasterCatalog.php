@@ -2,6 +2,7 @@
 
 namespace App\Support\Crm;
 
+use App\Models\SalesTarget;
 use App\Models\TaxRate;
 use App\Support\Masters\MasterCard;
 use App\Support\Masters\MasterCatalog;
@@ -19,6 +20,14 @@ class CrmMasterCatalog extends MasterCatalog
     public function cards(): array
     {
         return array_merge([
+            new MasterCard(
+                key: 'sales-targets',
+                label: '売上目標',
+                description: '全社・地域・エリア・店舗・担当者ごとの月次目標。ダッシュボードの達成率に使います。',
+                icon: 'dashboard',
+                routeName: 'masters.sales-targets',
+                modelClass: SalesTarget::class,
+            ),
             new MasterCard(
                 key: 'tax_rates',
                 label: '税率',

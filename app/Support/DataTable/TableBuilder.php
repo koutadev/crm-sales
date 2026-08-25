@@ -155,6 +155,11 @@ class TableBuilder
      */
     private function applySort(Builder $query): void
     {
+        // 定義側で並べた場合(階層順など)は、共通の order by は足さない
+        if ($this->definition->applySort($query, $this->state->sort, $this->state->direction)) {
+            return;
+        }
+
         $query->orderBy($this->state->sort, $this->state->direction);
 
         // 同値のときの並びを安定させる
