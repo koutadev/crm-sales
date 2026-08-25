@@ -20,7 +20,7 @@
 
             <x-data-table :table="$table">
                 @foreach ($table->items() as $customer)
-                    <tr class="{{ $customer->trashed() ? 'opacity-60' : '' }}">
+                    <x-table.row :muted="$customer->trashed()">
                         <td class="whitespace-nowrap px-4 py-3 font-mono text-xs">{{ $customer->code }}</td>
 
                         <td class="px-4 py-3 font-medium">
@@ -87,7 +87,7 @@
                                 @endcan
                             @endif
                         </td>
-                    </tr>
+                    </x-table.row>
                 @endforeach
             </x-data-table>
         </div>

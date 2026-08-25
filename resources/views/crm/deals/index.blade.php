@@ -40,7 +40,7 @@
 
             <x-data-table :table="$table">
                 @foreach ($table->items() as $deal)
-                    <tr class="{{ $deal->trashed() ? 'opacity-60' : '' }}">
+                    <x-table.row :muted="$deal->trashed()">
                         <td class="whitespace-nowrap px-4 py-3 font-mono text-xs">
                             <a href="{{ route('deals.show', $deal->id) }}"
                                class="text-primary-text hover:text-primary-hover hover:underline">
@@ -112,7 +112,7 @@
                                 @endcan
                             @endif
                         </td>
-                    </tr>
+                    </x-table.row>
                 @endforeach
             </x-data-table>
         </div>
