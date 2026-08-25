@@ -207,6 +207,9 @@ erDiagram
 | 顧客・営業担当・商品の選択（入力で絞る） | `<x-form.combobox>` ＋ `App\Http\Controllers\Crm\OptionsController`（候補が多いときのみ） |
 | 絞り込み条件の記憶と保存ビュー（マイビュー） | `App\Support\DataTable\TableState` ＋ `App\Models\SavedView`（ユーザーごと） |
 | 組織階層（地域 > エリア > 店舗）と社員の所属 | `App\Models\Organization` ＋ `employees.organization_id`（共通基盤） |
+| 売上目標（全社／地域／エリア／店舗／担当者 × 年月） | `App\Models\SalesTarget` ＋ `App\Http\Controllers\Crm\SalesTargetController`（複製入力あり） |
+| 予実（達成率）の表示 | `App\Support\Crm\SalesTargetLookup` ＋ `<x-gauge>`（実績は既存の受注集計を流用） |
+| 都道府県別の集計 | 店舗の `prefecture` で束ね直す（階層は 3 段のまま・追加クエリなし） |
 | 組織別売上のドリルダウン集計 | `App\Support\Crm\OrganizationSales`（担当者経由で積み上げ・2 クエリ） |
 | 商談のカンバン表示とドラッグでのステータス変更 | `App\Support\Crm\DealKanban` ＋ `App\Http\Controllers\Crm\DealStatusController` |
 | 商談詳細の 1 ページ集約（概要／明細／活動タブ・次アクション） | `resources/views/crm/deals/show.blade.php` ＋ `partials/`（表示の整理のみ） |
