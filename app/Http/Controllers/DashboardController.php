@@ -6,6 +6,7 @@ use App\Enums\PermissionName;
 use App\Models\ActivityLog;
 use App\Support\Crm\DealHeadline;
 use App\Support\Crm\DealMetrics;
+use App\Support\Crm\OrganizationSales;
 use App\Support\Crm\PipelineRow;
 use App\Support\Dashboard\Chart;
 use App\Support\Dashboard\Kpi;
@@ -39,6 +40,7 @@ class DashboardController extends Controller
                 'kpis' => [],
                 'charts' => [],
                 'pipeline' => [],
+                'organizationSales' => null,
                 'recentActivities' => $canViewLogs ? $this->recentActivities() : null,
             ]);
         }
@@ -52,6 +54,8 @@ class DashboardController extends Controller
             'kpis' => $this->kpis($headline),
             'charts' => $this->charts($monthlySales, $salesByEmployee, $pipeline),
             'pipeline' => $pipeline,
+            // 組織別(地域 > エリア > 店舗 > 担当者)。担当者の所属をたどって積み上げる
+            'organizationSales' => OrganizationSales::build(),
             'recentActivities' => $canViewLogs ? $this->recentActivities() : null,
         ]);
     }

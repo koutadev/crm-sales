@@ -20,6 +20,14 @@
     </x-form-field>
 </div>
 
+<x-form-field name="organization_id" label="所属（店舗）"
+              help="売上などの集計は、この所属をたどって 店舗 > エリア > 地域 に積み上げます。">
+    <x-form.combobox name="organization_id"
+                     :options="$organizationOptions"
+                     :selected="old('organization_id', $employee->organization_id)"
+                     placeholder="店舗名で検索" />
+</x-form-field>
+
 <x-form-field name="email" label="メールアドレス">
     <x-text-input id="email" name="email" type="email" class="mt-1 block w-full"
                   :value="old('email', $employee->email)" />

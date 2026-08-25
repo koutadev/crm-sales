@@ -4,6 +4,7 @@ namespace App\Support\Masters;
 
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Organization;
 use App\Models\Partner;
 use App\Models\Position;
 use App\Models\Product;
@@ -28,6 +29,14 @@ class MasterCatalog
     public function cards(): array
     {
         return [
+            new MasterCard(
+                key: 'organizations',
+                label: '組織',
+                description: '地域 > エリア > 店舗 の階層。社員の所属先で、売上などの集計単位になります。',
+                icon: 'departments',
+                routeName: 'masters.organizations',
+                modelClass: Organization::class,
+            ),
             new MasterCard(
                 key: 'employees',
                 label: '社員',

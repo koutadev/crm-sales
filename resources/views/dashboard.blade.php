@@ -58,6 +58,11 @@
                 </div>
             @endif
 
+            {{-- 組織別(地域 > エリア > 店舗 > 担当者)の売上 --}}
+            @if ($organizationSales !== null)
+                @include('crm.dashboard.organization-sales')
+            @endif
+
             {{-- パイプライン(ステータス別の商談金額) --}}
             @if ($pipeline !== [])
                 <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">

@@ -21,6 +21,8 @@ if [ ! -d "$TEMPLATE_PATH" ]; then
 fi
 
 # 共通基盤から丸ごと持ってくるパス
+# (app/Models/Employee.php は CRM 固有の関連を持つため対象外。組織の追加など
+#  共通の変更が入ったときは、こちら側にも同じ変更を手で入れる)
 PATHS=(
     "app/Support/DataTable"
     "app/Support/Navigation"
@@ -37,6 +39,15 @@ PATHS=(
     "app/Http/Controllers/Masters/DepartmentController.php"
     "app/Http/Controllers/Masters/PositionController.php"
     "app/Http/Controllers/Masters/ProductCategoryController.php"
+    "app/Enums/OrganizationType.php"
+    "app/Models/Organization.php"
+    "app/Tables/OrganizationTable.php"
+    "app/Http/Controllers/Masters/OrganizationController.php"
+    "app/Http/Requests/Masters/OrganizationRequest.php"
+    "database/factories/OrganizationFactory.php"
+    "database/migrations/2026_08_25_200000_create_organizations_table.php"
+    "database/migrations/2026_08_25_200100_add_organization_id_to_employees_table.php"
+    "resources/views/masters/organizations"
     "app/Http/Controllers/SavedViewController.php"
     "app/Http/Requests/SavedViewRequest.php"
     "app/Models/SavedView.php"

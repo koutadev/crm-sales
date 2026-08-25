@@ -19,11 +19,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property int|null $department_id
  * @property int|null $position_id
+ * @property int|null $organization_id
  * @property string|null $email
  * @property EmploymentStatus $employment_status
  * @property int|null $user_id
  * @property-read Department|null $department
  * @property-read Position|null $position
+ * @property-read Organization|null $organization
  * @property-read User|null $user
  */
 class Employee extends BaseModel
@@ -37,6 +39,7 @@ class Employee extends BaseModel
         'name',
         'department_id',
         'position_id',
+        'organization_id',
         'email',
         'employment_status',
         'user_id',
@@ -64,6 +67,16 @@ class Employee extends BaseModel
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * 所属する組織(店舗)。売上などの集計はここを経由してたどる。
+     *
+     * @return BelongsTo<Organization, $this>
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     /**

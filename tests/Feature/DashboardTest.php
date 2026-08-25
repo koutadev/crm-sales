@@ -256,9 +256,11 @@ class DashboardTest extends TestCase
         $scaled = $this->countQueries(fn () => $this->get(route('dashboard'))->assertOk());
 
         $this->assertSame($baseline, $scaled, '月や担当者ごとにクエリを回していない。');
-        // 集計は 4 クエリ(KPI 4 種 / 月次推移 / 担当者別 / ステータス別 で各 1 本)。
+        // 集計は 6 クエリ。
+        //   KPI 4 種 / 月次推移 / 担当者別 / ステータス別 で各 1 本
+        //   + 組織別(担当者ごとの受注 1 本 + 組織の一覧 1 本)
         // 本数が増えたらループでクエリを回している疑いがあるので、実測値で固定しておく
-        $this->assertSame(4, $baseline, 'ダッシュボードの集計クエリは 4 本。');
+        $this->assertSame(6, $baseline, 'ダッシュボードの集計クエリは 6 本。');
     }
 
     #[Test]

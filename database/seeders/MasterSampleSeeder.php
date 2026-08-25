@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\OrganizationType;
 use App\Enums\PartnerType;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Organization;
 use App\Models\Partner;
 use App\Models\Position;
 use App\Models\Product;
@@ -83,7 +85,9 @@ class MasterSampleSeeder extends Seeder
             $categories = $this->createNamed(ProductCategory::class, self::CATEGORIES);
 
             $this->createProducts($categories);
-            $this->createEmployees($departments, $positions);
+            // 組織(地域 > エリア > 店舗)。名前は固定で乱数を使わないため、他のデータの並びは変わらない
+            $stores = $this->createOrganizations();
+            $this->createEmployees($departments, $positions, $stores);
             $this->createPartners();
         } finally {
             config(['activity_log.enabled' => true]);
@@ -138,18 +142,21 @@ class MasterSampleSeeder extends Seeder
      *
      * @param  Collection<string, Department>  $departments
      * @param  Collection<string, Position>  $positions
+     * @param  list<Organization>  $stores
      */
-    private function createEmployees(Collection $departments, Collection $positions): void
+    private function createEmployees(Collection $departments, Collection $positions, array $stores): void
     {
         Employee::factory()
             ->count(24)
             ->create()
-            ->each(function (Employee $employee, int $index) use ($departments, $positions): void {
+            ->each(function (Employee $employee, int $index) use ($departments, $positions, $stores): void {
                 $employee->forceFill([
                     'department_id' => $index < 8
                         ? $departments->get('営業部')?->id
                         : fake()->randomElement($departments->values()->all())->id,
                     'position_id' => fake()->randomElement($positions->values()->all())->id,
+                    // 5 店舗ずつ飛ばして配属し、どの地域にも担当者が行き渡るようにする
+                    'organization_id' => $stores[($index * 5) % count($stores)]->id,
                 ])->saveQuietly();
             });
 
@@ -157,6 +164,62 @@ class MasterSampleSeeder extends Seeder
         Employee::factory()->retired()->count(4)->create();
 
         $this->linkDemoUsers();
+    }
+
+    /**
+     * 組織の階層(地域 > エリア > 店舗)を作り、最下層の店舗を返す。
+     *
+     * 名前は固定なので、何度シードし直しても同じ組織になる。
+     *
+     * @return list<Organization>
+     */
+    private function createOrganizations(): array
+    {
+        /** @var array<string, array<string, list<string>>> $tree */
+        $tree = [
+            '東日本地域' => [
+                '首都圏エリア' => ['東京本店', '横浜支店', 'さいたま支店'],
+                '北関東エリア' => ['大宮支店', '宇都宮支店'],
+            ],
+            '中日本地域' => [
+                '東海エリア' => ['名古屋支店', '静岡支店'],
+                '北陸エリア' => ['金沢支店'],
+            ],
+            '西日本地域' => [
+                '関西エリア' => ['大阪支店', '神戸支店', '京都支店'],
+                '九州エリア' => ['福岡支店'],
+            ],
+        ];
+
+        $stores = [];
+
+        foreach ($tree as $regionName => $areas) {
+            $region = Organization::create([
+                'name' => $regionName,
+                'type' => OrganizationType::Region,
+                'is_active' => true,
+            ]);
+
+            foreach ($areas as $areaName => $storeNames) {
+                $area = Organization::create([
+                    'name' => $areaName,
+                    'type' => OrganizationType::Area,
+                    'parent_id' => $region->id,
+                    'is_active' => true,
+                ]);
+
+                foreach ($storeNames as $storeName) {
+                    $stores[] = Organization::create([
+                        'name' => $storeName,
+                        'type' => OrganizationType::Store,
+                        'parent_id' => $area->id,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+        }
+
+        return $stores;
     }
 
     /**

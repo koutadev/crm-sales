@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Masters;
 
 use App\Enums\EmploymentStatus;
+use App\Enums\OrganizationType;
 use App\Http\Requests\Masters\EmployeeRequest;
 use App\Models\BaseModel;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Organization;
 use App\Models\Position;
 use App\Models\User;
 use App\Support\DataTable\TableDefinition;
@@ -73,6 +75,7 @@ class EmployeeController extends MasterController
             '社員コード' => $record->code,
             '氏名' => $record->name,
             '部署' => $record->department?->name,
+            '所属（店舗）' => $record->organization?->path(),
             '役職' => $record->position?->name,
             'メールアドレス' => $record->email,
             '在籍状態' => $record->employment_status->label(),
@@ -92,6 +95,15 @@ class EmployeeController extends MasterController
         return array_merge($this->sharedViewData(), [
             'employee' => $employee,
             'departmentOptions' => Department::query()->active()->orderBy('code')->pluck('name', 'id')->all(),
+            // 所属は最下層(店舗)だけを選べるようにし、どのエリア・地域かも分かるようにする
+            'organizationOptions' => Organization::query()
+                ->active()
+                ->ofType(OrganizationType::assignable())
+                ->with('parent.parent:id,name')
+                ->orderBy('code')
+                ->get()
+                ->mapWithKeys(static fn (Organization $store): array => [$store->id => $store->path()])
+                ->all(),
             'positionOptions' => Position::query()->active()->orderBy('code')->pluck('name', 'id')->all(),
             'statusOptions' => EmploymentStatus::options(),
             'userOptions' => User::query()->orderBy('name')->pluck('name', 'id')->all(),

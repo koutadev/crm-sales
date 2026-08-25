@@ -206,6 +206,8 @@ erDiagram
 | 商談一覧の期間フィルタ（基準日切替） | `App\Tables\DealTable::applyExtraFilters()` ＋ `App\Support\Ui\DateRange` |
 | 顧客・営業担当・商品の選択（入力で絞る） | `<x-form.combobox>` ＋ `App\Http\Controllers\Crm\OptionsController`（候補が多いときのみ） |
 | 絞り込み条件の記憶と保存ビュー（マイビュー） | `App\Support\DataTable\TableState` ＋ `App\Models\SavedView`（ユーザーごと） |
+| 組織階層（地域 > エリア > 店舗）と社員の所属 | `App\Models\Organization` ＋ `employees.organization_id`（共通基盤） |
+| 組織別売上のドリルダウン集計 | `App\Support\Crm\OrganizationSales`（担当者経由で積み上げ・2 クエリ） |
 | 商談のカンバン表示とドラッグでのステータス変更 | `App\Support\Crm\DealKanban` ＋ `App\Http\Controllers\Crm\DealStatusController` |
 | 商談詳細の 1 ページ集約（概要／明細／活動タブ・次アクション） | `resources/views/crm/deals/show.blade.php` ＋ `partials/`（表示の整理のみ） |
 | ダッシュボードの集計 | `App\Support\Crm\DealMetrics`（KPI／月次／担当者別／パイプラインで各 1 クエリ） |
