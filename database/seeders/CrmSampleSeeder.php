@@ -115,6 +115,9 @@ class CrmSampleSeeder extends Seeder
             }
 
             $this->createCustomerActivities($customers, $salesReps);
+
+            // 「次アクション」は最後に作る(既存データの乱数の並びを変えないため)
+            $this->createNextActions();
         } finally {
             config(['activity_log.enabled' => true]);
         }
@@ -317,13 +320,30 @@ class CrmSampleSeeder extends Seeder
                 'note' => fn (): string => fake()->randomElement(self::NOTES),
             ]);
 
-        // 進行中の商談には「次アクション」として先の予定も入れておく
-        // (商談詳細の上部に次にやることが出る)
-        if ($deal->status->isOpen() && fake()->boolean(60)) {
+    }
+
+    /**
+     * 進行中の商談の「次アクション」(これからの予定)。
+     *
+     * 商談・明細の金額を決める乱数の並びを変えないよう、
+     * 他のデータを作り終えたあとにまとめて作る。
+     */
+    private function createNextActions(): void
+    {
+        $openDeals = Deal::query()
+            ->whereIn('status', DealStatus::openValues())
+            ->with('employee:id')
+            ->get();
+
+        foreach ($openDeals as $deal) {
+            if (! fake()->boolean(60)) {
+                continue;
+            }
+
             Activity::factory()->create([
                 'partner_id' => $deal->partner_id,
                 'deal_id' => $deal->id,
-                'employee_id' => $employee->id,
+                'employee_id' => $deal->employee_id,
                 'activity_at' => fake()
                     ->dateTimeBetween(Carbon::now()->addDay(), Carbon::now()->addDays(14))
                     ->format('Y-m-d H:i:s'),
