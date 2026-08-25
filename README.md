@@ -5,9 +5,18 @@
 顧客（会社・担当者）〜商談〜明細で金額を積み上げて一元管理し、
 **売上・見込み金額の可視化**と**内税管理（税率の時点保全）による金額の正確性**を主役に据えた業務システムです。
 
-業務システム共通基盤 **laravel-business-template**（認証・権限・マスタ・一覧基盤・監査ログ・ダッシュボードの枠までを作り込んだ自作テンプレート）をベースに、
+業務システム共通基盤 **[laravel-business-template](https://github.com/koutadev/laravel-business-template)**
+（認証・権限・マスタ・一覧基盤・監査ログ・ダッシュボードの枠までを作り込んだ自作テンプレート）をベースに、
 CRM 固有のテーブルと画面を足す形で構築しています。基盤側の設計は
 [このテンプレの位置づけ](#このテンプレの位置づけ)以降にそのまま残してあります。
+
+| | リンク |
+| --- | --- |
+| 動くデモ（静的） | https://crm-demo-static-snowy.vercel.app |
+| 基本設計書 | [docs/basic-design.md](docs/basic-design.md) |
+| ベースにした共通基盤 | https://github.com/koutadev/laravel-business-template |
+
+> 画面に出るデータはすべて架空のダミーです（会社名・氏名・金額とも、実在の企業・個人とは関係ありません）。
 
 ---
 
