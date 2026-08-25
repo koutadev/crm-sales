@@ -106,12 +106,17 @@
 
         <div class="relative">
             <input type="text"
-                   @if ($uniqueId) :id="{{ $idExpression }}" @else id="{{ $inputId }}" @endif
+                   @if ($uniqueId)
+                       :id="{{ $idExpression }}"
+                       :aria-controls="{{ $idExpression }} + '-listbox'"
+                   @else
+                       id="{{ $inputId }}"
+                       aria-controls="{{ $inputId }}-listbox"
+                   @endif
                    x-ref="input"
                    role="combobox"
                    autocomplete="off"
                    aria-autocomplete="list"
-                   :aria-controls="{{ $idExpression }} + '-listbox'"
                    :aria-expanded="open.toString()"
                    :aria-activedescendant="activeDescendant({{ $idExpression }})"
                    placeholder="{{ $placeholder }}"
@@ -150,7 +155,7 @@
         </div>
 
         {{-- 候補 --}}
-        <ul :id="{{ $idExpression }} + '-listbox'"
+        <ul @if ($uniqueId) :id="{{ $idExpression }} + '-listbox'" @else id="{{ $inputId }}-listbox" @endif
             role="listbox"
             x-ref="list"
             x-show="open"
