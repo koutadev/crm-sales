@@ -113,11 +113,47 @@ class DashboardController extends Controller
             $pipelineAmounts[$row->status->label()] = $row->totalInclTax;
         }
 
+        // 担当者の軸ラベルは苗字だけにして、正式名称はツールチップと読み上げに残す
+        [$employeeLabels, $employeeFullNames] = $this->shortenPersonNames($salesByEmployee);
+
         return [
             Chart::line('monthly-sales', '月次売上推移（受注日ベース・税込）', $monthlySales, '受注金額'),
-            Chart::bar('sales-by-employee', '担当者別の売上（受注・税込）', $salesByEmployee, '受注金額'),
+            Chart::bar('sales-by-employee', '担当者別の売上（受注・税込）', $employeeLabels, '受注金額')
+                ->withTooltipLabels($employeeFullNames),
             Chart::bar('pipeline-amount', 'ステータス別の商談金額（税込）', $pipelineAmounts, '商談金額'),
         ];
+    }
+
+    /**
+     * 氏名を軸ラベル用に短くする(「姓 名」の姓だけ)。
+     *
+     * 区切りの空白が無ければそのまま。同じ姓が複数いる場合は、
+     * 取り違えないようその人たちだけフルネームのままにする。
+     *
+     * @param  array<string, int>  $values  [氏名 => 値]
+     * @return array{0: array<string, int>, 1: list<string>} [短い表記の値, 元の氏名]
+     */
+    private function shortenPersonNames(array $values): array
+    {
+        $fullNames = array_map(strval(...), array_keys($values));
+
+        $surnames = array_map(
+            static fn (string $name): string => preg_split('/[\s　]+/u', trim($name))[0] ?? $name,
+            $fullNames,
+        );
+
+        $duplicated = array_keys(array_filter(array_count_values($surnames), static fn (int $count): bool => $count > 1));
+
+        $shortened = [];
+
+        foreach (array_values($values) as $index => $value) {
+            $surname = $surnames[$index];
+            $label = in_array($surname, $duplicated, true) ? $fullNames[$index] : $surname;
+
+            $shortened[$label] = $value;
+        }
+
+        return [$shortened, $fullNames];
     }
 
     /**

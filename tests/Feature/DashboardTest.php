@@ -327,4 +327,37 @@ class DashboardTest extends TestCase
 
         return $count;
     }
+
+    #[Test]
+    public function the_employee_chart_shows_surnames_on_the_axis(): void
+    {
+        $this->actingAsRole(RoleName::Staff);
+
+        $customer = Partner::factory()->create(['partner_type' => PartnerType::Customer]);
+
+        // 同じ姓の担当者を混ぜて、取り違えないことも見る
+        foreach ([['山田 太郎', 500000], ['佐藤 花子', 300000], ['佐藤 次郎', 100000]] as [$name, $amount]) {
+            $employee = Employee::factory()->create(['name' => $name]);
+
+            Deal::factory()->create([
+                'partner_id' => $customer->id,
+                'employee_id' => $employee->id,
+                'status' => DealStatus::Won,
+                'amount_total' => $amount,
+                'ordered_at' => now()->toDateString(),
+            ]);
+        }
+
+        $charts = $this->get(route('dashboard'))->assertOk()->viewData('charts');
+
+        $employeeChart = collect($charts)->firstWhere('id', 'sales-by-employee');
+        $config = $employeeChart->toChartJs();
+
+        // 一意な姓は苗字だけ、重複する姓はフルネームのまま
+        $this->assertSame(['山田', '佐藤 花子', '佐藤 次郎'], $config['data']['labels']);
+
+        // ツールチップと読み上げでは正式名称
+        $this->assertSame(['山田 太郎', '佐藤 花子', '佐藤 次郎'], $config['data']['tooltipLabels']);
+        $this->assertStringContainsString('山田 太郎 500,000', $employeeChart->summary());
+    }
 }

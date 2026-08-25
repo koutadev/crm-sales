@@ -20,6 +20,29 @@ const applyDefaults = () => {
         : 'rgba(0,0,0,0.06)';
 };
 
+/**
+ * 目盛りは短く、ツールチップでは正式名称を出す。
+ *
+ * PHP 側から data.tooltipLabels（目盛りと同じ並び）が渡されたときだけ差し替える。
+ */
+const withTooltipLabels = (config) => {
+    const labels = config.data?.tooltipLabels;
+
+    if (! Array.isArray(labels) || labels.length === 0) {
+        return config;
+    }
+
+    config.options = config.options ?? {};
+    config.options.plugins = config.options.plugins ?? {};
+    config.options.plugins.tooltip = config.options.plugins.tooltip ?? {};
+    config.options.plugins.tooltip.callbacks = {
+        ...(config.options.plugins.tooltip.callbacks ?? {}),
+        title: (items) => labels[items[0]?.dataIndex] ?? items[0]?.label ?? '',
+    };
+
+    return config;
+};
+
 const renderCharts = () => {
     applyDefaults();
 
@@ -29,7 +52,7 @@ const renderCharts = () => {
         }
 
         try {
-            new Chart(canvas, JSON.parse(canvas.dataset.chart));
+            new Chart(canvas, withTooltipLabels(JSON.parse(canvas.dataset.chart)));
             canvas.dataset.chartRendered = '1';
         } catch (error) {
             console.error('グラフの描画に失敗しました', error);

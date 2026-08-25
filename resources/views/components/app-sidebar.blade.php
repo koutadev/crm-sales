@@ -28,6 +28,23 @@
        ]"
        class="fixed inset-y-0 start-0 z-50 flex w-64 max-lg:-translate-x-full flex-col border-e border-gray-200 bg-white transition-[transform,width] duration-200 motion-reduce:transition-none lg:w-64 dark:border-gray-700 dark:bg-gray-800">
 
+    {{--
+        折りたたみ切り替え(画面幅 lg 以上)。
+
+        ナビの右端・高さの中央に置く。ナビ自体の幅が変わると、
+        ボタンもその端についてくる(位置は CSS だけで決まる)。
+    --}}
+    <button type="button"
+            @click="toggleCollapsed()"
+            :aria-expanded="(! collapsed).toString()"
+            :aria-label="collapsed ? 'メニューを開く' : 'メニューを折りたたむ'"
+            :title="collapsed ? 'メニューを開く' : 'メニューを折りたたむ'"
+            aria-controls="app-sidebar"
+            class="absolute top-1/2 -end-3 z-10 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none lg:flex dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-primary-text">
+        <x-icon name="chevrons-left" class="h-3.5 w-3.5" x-show="! collapsed" />
+        <x-icon name="chevrons-right" class="h-3.5 w-3.5" x-show="collapsed" x-cloak />
+    </button>
+
     {{-- サービス名 --}}
     <div class="flex h-14 shrink-0 items-center gap-2 border-b border-gray-100 px-4 dark:border-gray-700">
         <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-2">
@@ -62,17 +79,4 @@
             </div>
         @endforeach
     </nav>
-
-    {{-- 折りたたみ切り替え(画面幅 lg 以上) --}}
-    <div class="hidden shrink-0 border-t border-gray-100 p-2 lg:block dark:border-gray-700">
-        <button type="button" @click="toggleCollapsed()"
-                class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 motion-reduce:transition-none dark:text-gray-400 dark:hover:bg-gray-700"
-                :aria-expanded="(! collapsed).toString()"
-                aria-controls="app-sidebar">
-            <x-icon name="chevron-left" class="h-5 w-5 shrink-0 transition-transform motion-reduce:transition-none"
-                    ::class="collapsed && 'rotate-180'" />
-            <span x-show="! collapsed">メニューを折りたたむ</span>
-            <span class="sr-only" x-show="collapsed" x-cloak>メニューを開く</span>
-        </button>
-    </div>
 </aside>

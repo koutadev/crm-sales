@@ -26,6 +26,15 @@
 }
 
 /*
+ * キーボード操作時のフォーカスを、どの部品でも必ず見えるようにする。
+ * :where() で詳細度 0 にしてあるので、部品ごとのリング指定があればそちらが優先される。
+ */
+:where(a, button, summary, [role='button'], [role='tab'], [role='menuitem'], [tabindex]):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/*
  * テーマの配色。
  *
  * --color-primary / --color-accent の実際の値は config/theme.php から

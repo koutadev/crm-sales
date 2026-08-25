@@ -135,7 +135,7 @@ class DealSummaryTest extends TestCase
         $this->assertCount(count(DealStatus::cases()), $segments);
         $this->assertSame('受注', $segments[3]['label']);
         $this->assertSame(600000, $segments[3]['value']);
-        $this->assertSame('bg-emerald-500', $segments[3]['class']);
+        $this->assertSame('bg-emerald-600', $segments[3]['class']);
 
         // 件数でも同じ内訳が取れる
         $this->assertSame(1, $summary->statusSegments('count')[3]['value']);
@@ -221,7 +221,7 @@ class DealSummaryTest extends TestCase
         $html = $response->getContent();
 
         // 構成比バー(受注 600,000 / 1,000,000 = 60%)
-        $this->assertStringContainsString('bg-emerald-500', $html);
+        $this->assertStringContainsString('bg-emerald-600', $html);
         $this->assertStringContainsString('width: 60%', $html);
         $this->assertStringContainsString('width: 30%', $html);
 

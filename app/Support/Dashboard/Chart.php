@@ -27,7 +27,44 @@ class Chart
         public readonly string $title,
         public readonly array $data,
         public readonly string $datasetLabel = '',
+        /** @var list<string> 目盛りとは別に、ツールチップへ出す表示(空なら目盛りのまま) */
+        public readonly array $tooltipLabels = [],
     ) {}
+
+    /**
+     * 目盛りは短く、ツールチップでは正式名称を出す。
+     *
+     * 「担当者別」のように名前が長くて軸が詰まる場合に使う。
+     *
+     *   Chart::bar('sales', '担当者別', ['山田' => 100])->withTooltipLabels(['山田 太郎']);
+     *
+     * @param  list<string>  $labels  data と同じ並び
+     */
+    public function withTooltipLabels(array $labels): self
+    {
+        return new self($this->id, $this->type, $this->title, $this->data, $this->datasetLabel, $labels);
+    }
+
+    /**
+     * 読み上げ・キーボード向けの説明(グラフの中身を文章で持たせる)。
+     */
+    public function summary(): string
+    {
+        if ($this->isEmpty()) {
+            return $this->title.'：表示できるデータがありません。';
+        }
+
+        $parts = [];
+        $labels = array_keys($this->data);
+        $values = array_values($this->data);
+
+        foreach ($labels as $index => $label) {
+            $name = $this->tooltipLabels[$index] ?? (string) $label;
+            $parts[] = $name.' '.number_format($values[$index]);
+        }
+
+        return $this->title.'：'.implode('、', $parts);
+    }
 
     /**
      * @param  array<string, int|float>  $data
@@ -87,12 +124,19 @@ class Chart
             $dataset['pointRadius'] = 3;
         }
 
+        $data = [
+            'labels' => $labels,
+            'datasets' => [$dataset],
+        ];
+
+        if ($this->tooltipLabels !== []) {
+            // 実際の差し替えは resources/js/charts.js が行う
+            $data['tooltipLabels'] = $this->tooltipLabels;
+        }
+
         return [
             'type' => $this->type,
-            'data' => [
-                'labels' => $labels,
-                'datasets' => [$dataset],
-            ],
+            'data' => $data,
             'options' => $this->options(),
         ];
     }

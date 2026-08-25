@@ -15,7 +15,13 @@
         @else
             {{-- 設定は PHP 側で組み立て、JSON として渡す（resources/js/charts.js が描画する） --}}
             <canvas id="chart-{{ $chart->id }}"
+                    role="img"
+                    aria-describedby="chart-{{ $chart->id }}-summary"
+                    aria-label="{{ $chart->title }}"
                     data-chart="{{ json_encode($chart->toChartJs(), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) }}"></canvas>
+
+            {{-- canvas は読み上げられないので、同じ内容を文章でも持たせる --}}
+            <p id="chart-{{ $chart->id }}-summary" class="sr-only">{{ $chart->summary() }}</p>
         @endif
     </div>
 </div>
