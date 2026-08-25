@@ -55,6 +55,22 @@ enum DealStatus: string
     }
 
     /**
+     * 構成比バーで使う塗り色(Tailwind のクラス)。
+     *
+     * バッジと同じ系統の色で、見込み → 受注へ進むほど濃くなるように選んである。
+     */
+    public function barClass(): string
+    {
+        return match ($this) {
+            self::Prospect => 'bg-gray-400',
+            self::Proposing => 'bg-sky-500',
+            self::Quoted => 'bg-amber-500',
+            self::Won => 'bg-emerald-500',
+            self::Lost => 'bg-rose-500',
+        };
+    }
+
+    /**
      * 進行中(まだ受注も失注もしていない)か。
      */
     public function isOpen(): bool

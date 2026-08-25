@@ -147,7 +147,7 @@ class CrmLayoutTest extends TestCase
         $this->actingAs($this->userWithRole(RoleName::Staff))
             ->get(route('deals.index', ['reset' => 1]))
             ->assertOk()
-            ->assertSee('表示中の合計(税込)')
+            ->assertSee('合計(税込)')
             ->assertSee('加重見込み(税込)');
     }
 }
