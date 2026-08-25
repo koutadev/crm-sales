@@ -116,7 +116,7 @@ class TableState
             $value = isset($params[$filter->name]) ? (string) $params[$filter->name] : '';
 
             // 定義にない値は無視する(URL 直打ち対策)
-            if ($value !== '' && array_key_exists($value, $filter->options)) {
+            if ($filter->accepts($value)) {
                 $filters[$filter->name] = $value;
             }
         }

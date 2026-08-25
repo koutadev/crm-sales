@@ -28,19 +28,34 @@
             </div>
 
             @foreach ($table->filters() as $filter)
-                <div>
+                <div @class(['w-56' => $filter->isCombobox()])>
                     <label for="dt-{{ $filter->name }}" class="block text-xs font-medium text-gray-600 dark:text-gray-400">
                         {{ $filter->label }}
                     </label>
-                    <select id="dt-{{ $filter->name }}" name="{{ $filter->name }}"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 sm:text-sm">
-                        <option value="">{{ $filter->placeholder }}</option>
-                        @foreach ($filter->options as $value => $label)
-                            <option value="{{ $value }}" @selected($state->filterValue($filter->name) === (string) $value)>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
+
+                    @if ($filter->isCombobox())
+                        {{-- 候補が多いマスタ(顧客・担当者など)は入力で絞り込む --}}
+                        <div class="mt-1">
+                            <x-form.combobox :name="$filter->name" :id="'dt-'.$filter->name"
+                                             :options="$filter->options"
+                                             :source="$filter->source"
+                                             :selected="$state->filterValue($filter->name)"
+                                             :selected-label="$filter->labelFor($state->filterValue($filter->name))"
+                                             :placeholder="$filter->placeholder"
+                                             :empty="'該当する'.$filter->label.'がありません'"
+                                             size="sm" />
+                        </div>
+                    @else
+                        <select id="dt-{{ $filter->name }}" name="{{ $filter->name }}"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 sm:text-sm">
+                            <option value="">{{ $filter->placeholder }}</option>
+                            @foreach ($filter->options as $value => $label)
+                                <option value="{{ $value }}" @selected($state->filterValue($filter->name) === (string) $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @endif
                 </div>
             @endforeach
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Crm\CustomerContactController;
 use App\Http\Controllers\Crm\CustomerController;
 use App\Http\Controllers\Crm\DealActivityController;
 use App\Http\Controllers\Crm\DealController;
+use App\Http\Controllers\Crm\OptionsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Masters\DepartmentController;
 use App\Http\Controllers\Masters\EmployeeController;
@@ -68,6 +69,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('customers/{id}', [CustomerController::class, 'show'])
             ->whereNumber('id')
             ->name('customers.show');
+
+        // コンボボックス(非同期モード)の候補。候補が多いときだけ画面から呼ばれる
+        Route::get('options/customers', [OptionsController::class, 'customers'])->name('options.customers');
+        Route::get('options/employees', [OptionsController::class, 'employees'])->name('options.employees');
+        Route::get('options/products', [OptionsController::class, 'products'])->name('options.products');
 
         Route::get('deals', [DealController::class, 'index'])->name('deals.index');
         Route::get('deals/export', [DealController::class, 'export'])->name('deals.export');

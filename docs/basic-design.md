@@ -202,6 +202,7 @@ erDiagram
 | 顧客一覧の金額集計 | `App\Tables\CustomerTable`（相関サブクエリ） |
 | 商談一覧の絞り込み連動サマリ | `App\Support\Crm\DealListSummary` ＋ `TableBuilder::filteredQuery()` |
 | 商談一覧の期間フィルタ（基準日切替） | `App\Tables\DealTable::applyExtraFilters()` ＋ `App\Support\Ui\DateRange` |
+| 顧客・営業担当・商品の選択（入力で絞る） | `<x-form.combobox>` ＋ `App\Http\Controllers\Crm\OptionsController`（候補が多いときのみ） |
 | ダッシュボードの集計 | `App\Support\Crm\DealMetrics`（KPI／月次／担当者別／パイプラインで各 1 クエリ） |
 
 ## 11. 静的デモ・仮想クライアント設定

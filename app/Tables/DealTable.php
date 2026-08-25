@@ -27,6 +27,14 @@ use Illuminate\Database\Eloquent\Model;
  */
 class DealTable extends TableDefinition
 {
+    /**
+     * 絞り込みの候補を画面に埋め込む上限。
+     *
+     * これを超えるマスタは、全件を埋め込む代わりにコンボボックスの非同期モード
+     * (入力のたびにサーバへ問い合わせる)へ自動的に切り替える。
+     */
+    private const MAX_STATIC_OPTIONS = 100;
+
     /** 期間フィルタの基準日にできる列(既定は先頭)。 */
     public const BASIS_COLUMNS = [
         'expected_close_date' => '予定クローズ日',
@@ -102,8 +110,8 @@ class DealTable extends TableDefinition
                 options: ['open' => '進行中（受注・失注を除く）'] + DealStatus::options(),
                 valueGroups: ['open' => DealStatus::openValues()],
             ),
-            new Filter('partner_id', '顧客', $this->customerOptions()),
-            new Filter('employee_id', '営業担当', $this->employeeOptions()),
+            $this->customerFilter(),
+            $this->employeeFilter(),
         ];
     }
 
@@ -167,24 +175,73 @@ class DealTable extends TableDefinition
     }
 
     /**
-     * @return array<array-key, string>
+     * 顧客での絞り込み(入力で候補を絞るコンボボックス)。
      */
-    private function customerOptions(): array
+    private function customerFilter(): Filter
     {
-        return $this->cachedOptions(
+        $options = $this->cachedOptions(
             'customers',
-            static fn (): array => Partner::query()->customers()->orderBy('code')->pluck('name', 'id')->all(),
+            static fn (): array => Partner::query()->customers()
+                ->orderBy('code')
+                ->limit(self::MAX_STATIC_OPTIONS + 1)
+                ->pluck('name', 'id')
+                ->all(),
+        );
+
+        return $this->comboboxFilter(
+            name: 'partner_id',
+            label: '顧客',
+            options: $options,
+            source: route('options.customers'),
+            labelResolver: static fn (string $id): ?string => Partner::query()->whereKey($id)->value('name'),
         );
     }
 
     /**
-     * @return array<array-key, string>
+     * 営業担当での絞り込み(入力で候補を絞るコンボボックス)。
      */
-    private function employeeOptions(): array
+    private function employeeFilter(): Filter
     {
-        return $this->cachedOptions(
+        $options = $this->cachedOptions(
             'employees',
-            static fn (): array => Employee::query()->active()->orderBy('code')->pluck('name', 'id')->all(),
+            static fn (): array => Employee::query()->active()
+                ->orderBy('code')
+                ->limit(self::MAX_STATIC_OPTIONS + 1)
+                ->pluck('name', 'id')
+                ->all(),
+        );
+
+        return $this->comboboxFilter(
+            name: 'employee_id',
+            label: '営業担当',
+            options: $options,
+            source: route('options.employees'),
+            labelResolver: static fn (string $id): ?string => Employee::query()->whereKey($id)->value('name'),
+        );
+    }
+
+    /**
+     * 候補の件数を見て、静的モード(その場で絞る)か非同期モード(サーバへ問い合わせる)を選ぶ。
+     *
+     * 候補は上限 + 1 件だけ読んでいるので、件数を数えるためのクエリは増えない。
+     *
+     * @param  array<array-key, string>  $options
+     * @param  \Closure(string): ?string  $labelResolver
+     */
+    private function comboboxFilter(string $name, string $label, array $options, string $source, \Closure $labelResolver): Filter
+    {
+        $async = count($options) > self::MAX_STATIC_OPTIONS;
+
+        return new Filter(
+            name: $name,
+            label: $label,
+            options: $async ? [] : $options,
+            combobox: true,
+            source: $async ? $source : null,
+            // 非同期モードでは候補を持たないので、選択中の名前だけ引けるようにしておく
+            labelResolver: $async
+                ? static fn (string $id): ?string => ctype_digit($id) ? $labelResolver($id) : null
+                : null,
         );
     }
 }

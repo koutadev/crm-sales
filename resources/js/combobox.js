@@ -29,10 +29,67 @@ export default function combobox(config = {}) {
         activeIndex: -1,
         loading: false,
         failed: false,
+        fetched: false,
         timer: null,
 
         init() {
             this.filtered = this.options;
+            this.syncLabel();
+
+            // 外側と x-modelable で結んでいる場合、値は後から入ってくることがある
+            this.$watch('value', () => this.syncLabel());
+        },
+
+        /**
+         * 候補を差し替える（連動する選択肢：顧客を選ぶと先方担当が変わる、など）。
+         *
+         * [{ value, label }] でも [{ id, name }] でも受け取れる。
+         */
+        setOptions(items) {
+            this.options = (items ?? []).map((item) => {
+                const value = String(item.value ?? item.id ?? '');
+                const label = String(item.label ?? item.name ?? '');
+
+                return { value, label, search: item.search ?? normalizeSearchText(label) };
+            });
+
+            // 選択中の候補が新しい一覧から消えていたら、選択も外す
+            if (this.hasSelection && !this.options.some((option) => option.value === String(this.value))) {
+                this.value = '';
+                this.label = '';
+                this.query = '';
+            }
+
+            if (!this.isAsync) {
+                this.filtered = this.filter(this.options, this.open ? this.query : '');
+            }
+
+            this.syncLabel();
+        },
+
+        /** 選択中の値に対応するラベルを候補から引き直す */
+        syncLabel() {
+            if (!this.hasSelection) {
+                this.label = '';
+
+                if (!this.open) {
+                    this.query = '';
+                }
+
+                return;
+            }
+
+            const found = this.options.find((option) => option.value === String(this.value));
+
+            if (!found) {
+                return;
+            }
+
+            this.label = found.label;
+
+            if (!this.open) {
+                this.query = found.label;
+            }
         },
 
         get isAsync() {
@@ -57,7 +114,8 @@ export default function combobox(config = {}) {
             this.activeIndex = -1;
 
             // 非同期モードは開いた時点で一度読み込む
-            if (this.isAsync && this.filtered.length === 0) {
+            // (選択済みの 1 件だけを持っている場合もあるので、取得済みかどうかで判断する)
+            if (this.isAsync && !this.fetched) {
                 this.fetchOptions();
             }
         },
@@ -124,6 +182,7 @@ export default function combobox(config = {}) {
                 const payload = await response.json();
 
                 this.filtered = Array.isArray(payload) ? payload : (payload.data ?? []);
+                this.fetched = true;
             } catch (error) {
                 this.filtered = [];
                 this.failed = true;
@@ -155,6 +214,7 @@ export default function combobox(config = {}) {
             this.label = '';
             this.query = '';
             this.filtered = this.isAsync ? [] : this.options;
+            this.fetched = false;
             this.activeIndex = -1;
 
             this.$dispatch('combobox-selected', { value: '', label: '' });

@@ -60,37 +60,30 @@
                         <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200">商談情報</h3>
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            <x-form-field name="partner_id" label="顧客" :required="true">
-                                <select id="partner_id" name="partner_id" required x-model="partnerId" x-on:change="contactId = ''"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                                    <option value="">選択してください</option>
-                                    @foreach ($customerOptions as $id => $label)
-                                        <option value="{{ $id }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </x-form-field>
+                            {{-- 顧客・先方担当は入力で候補を絞れる(先方担当は顧客に連動) --}}
+                            <x-form.combobox name="partner_id" label="顧客" :required="true"
+                                             :options="$customerOptions"
+                                             :selected="old('partner_id', $deal->partner_id)"
+                                             model-expression="partnerId"
+                                             on-select="contactId = ''"
+                                             placeholder="顧客名・コードで検索" />
 
-                            <x-form-field name="partner_contact_id" label="先方担当" help="選んだ顧客に登録されている担当者から選べます。">
-                                <select id="partner_contact_id" name="partner_contact_id" x-model="contactId"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                                    <option value="">未選択</option>
-                                    <template x-for="contact in contactsForPartner()" :key="contact.id">
-                                        <option :value="contact.id" x-text="contact.name"></option>
-                                    </template>
-                                </select>
-                            </x-form-field>
+                            <x-form.combobox name="partner_contact_id" label="先方担当"
+                                             help="選んだ顧客に登録されている担当者から選べます。"
+                                             model-expression="contactId"
+                                             options-expression="contactsForPartner()"
+                                             placeholder="担当者名で検索"
+                                             empty="この顧客に担当者が登録されていません" />
 
                             <x-form-field name="title" label="件名" :required="true">
                                 <x-text-input id="title" name="title" type="text" class="mt-1 block w-full"
                                               :value="old('title', $deal->title)" required />
                             </x-form-field>
 
-                            <x-form-field name="employee_id" label="営業担当" :required="true">
-                                <x-select-input id="employee_id" name="employee_id" class="mt-1 block w-full"
-                                                :options="$employeeOptions"
-                                                :selected="old('employee_id', $deal->employee_id)"
-                                                placeholder="選択してください" required />
-                            </x-form-field>
+                            <x-form.combobox name="employee_id" label="営業担当" :required="true"
+                                             :options="$employeeOptions"
+                                             :selected="old('employee_id', $deal->employee_id)"
+                                             placeholder="担当者名・コードで検索" />
 
                             <x-form-field name="status" label="ステータス" :required="true">
                                 <select id="status" name="status" required x-model="status"
@@ -152,14 +145,15 @@
                                         <tr>
                                             <td class="px-3 py-2">
                                                 <input type="hidden" :name="`items[${index}][id]`" :value="row.id ?? ''">
-                                                <select :name="`items[${index}][product_id]`" x-model="row.product_id"
-                                                        x-on:change="applyProduct(index)" required
-                                                        class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-primary focus:ring-primary dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                                                    <option value="">選択してください</option>
-                                                    @foreach ($productOptions as $id => $label)
-                                                        <option value="{{ $id }}">{{ $label }}</option>
-                                                    @endforeach
-                                                </select>
+
+                                                {{-- 明細行の商品も入力で絞り込める(行ごとに独立した部品として動く) --}}
+                                                <x-form.combobox name="product" size="sm" :required="true" unique-id
+                                                                 :options="$productOptions"
+                                                                 name-expression="`items[${index}][product_id]`"
+                                                                 model-expression="row.product_id"
+                                                                 on-select="applyProduct(index, $event.detail.value)"
+                                                                 placeholder="商品名・コードで検索"
+                                                                 class="min-w-56" />
                                             </td>
 
                                             <td class="px-3 py-2">
@@ -266,11 +260,17 @@
                         this.rows.splice(index, 1);
                     },
 
-                    applyProduct(index) {
-                        const product = this.products[this.rows[index].product_id];
+                    applyProduct(index, productId = null) {
+                        const row = this.rows[index];
+
+                        if (productId !== null) {
+                            row.product_id = productId;
+                        }
+
+                        const product = this.products[row.product_id];
 
                         if (product) {
-                            this.rows[index].unit_price = product.unit_price;
+                            row.unit_price = product.unit_price;
                         }
                     },
 

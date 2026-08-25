@@ -3,7 +3,13 @@
     'label' => null,
     'options' => [],
     'selected' => null,
+    'selectedLabel' => null,
     'source' => null,
+    'nameExpression' => null,
+    'optionsExpression' => null,
+    'modelExpression' => null,
+    'onSelect' => null,
+    'uniqueId' => false,
     'size' => 'md',
     'required' => false,
     'disabled' => false,
@@ -20,6 +26,9 @@
     use App\Support\Ui\Size;
 
     $inputId = $id ?? $name;
+
+    // 繰り返し行では id が重複しないよう、Alpine の $id() で実行時に採番する
+    $idExpression = $uniqueId ? "\$id('{$inputId}')" : "'{$inputId}'";
     // messages を明示したときはそちらを優先する(カタログや独自表示用)
     $hasError = $messages !== null ? $messages !== [] : $errors->has($name);
     $current = old($name, $selected);
@@ -36,7 +45,8 @@
         ];
     }
 
-    $currentLabel = '';
+    // 選択中のラベル。非同期モードでは候補を持っていないので呼び出し側から受け取る
+    $currentLabel = (string) ($selectedLabel ?? '');
 
     foreach ($items as $item) {
         if ($item['value'] === (string) $current) {
@@ -59,29 +69,51 @@
         <x-form.combobox name="partner_id" label="顧客" :options="$customers" :selected="$partnerId" />
 
     非同期モード（入力に応じてサーバへ問い合わせる）:
-        <x-form.combobox name="partner_id" label="顧客" :source="route('customers.options')" />
+        <x-form.combobox name="partner_id" label="顧客" :source="route('customers.options')"
+                         :selected="$partnerId" :selected-label="$partnerName" />
         エンドポイントは ?q=... を受け取り [{ value, label }] を返す。
+        選択済みの値があるときは、候補を取りに行かなくても名前を出せるよう selected-label も渡す。
+
+    Alpine と組み合わせる（連動する候補・繰り返し行）:
+        model-expression   … 外側の値と双方向に結ぶ（x-modelable）
+        options-expression … 外側の状態から候補を作り直す（例：顧客を選ぶと先方担当が変わる）
+        on-select          … 選択・解除のたびに実行する式（$event.detail に value / label）
+        name-expression    … 送信する name を式で決める（明細行のような繰り返し用）
+        unique-id          … 繰り返し行で id が重複しないよう、実行時に採番する
+
+        <x-form.combobox name="product" :options="$products" unique-id
+                         name-expression="`items[${index}][product_id]`"
+                         model-expression="row.product_id"
+                         on-select="applyProduct(index, $event.detail.value)" />
 --}}
 <x-form.field :name="$name" :label="$label" :for="$inputId" :required="$required" :help="$help" :messages="$messages">
     <div x-data="combobox(@js($config))"
+         @if ($uniqueId) x-id="['{{ $inputId }}']" @endif
+         @if ($modelExpression) x-modelable="value" x-model="{{ $modelExpression }}" @endif
+         @if ($optionsExpression) x-effect="setOptions({{ $optionsExpression }})" @endif
+         @if ($onSelect) x-on:combobox-selected="{{ $onSelect }}" @endif
          @keydown.escape.stop="close()"
          @click.outside="close()"
          @if ($source) data-source="{{ $source }}" @endif
          class="relative">
 
         {{-- 実際に送信される値 --}}
-        <input type="hidden" name="{{ $name }}" :value="value">
+        @if ($nameExpression)
+            <input type="hidden" :name="{{ $nameExpression }}" :value="value">
+        @else
+            <input type="hidden" name="{{ $name }}" :value="value">
+        @endif
 
         <div class="relative">
             <input type="text"
-                   id="{{ $inputId }}"
+                   @if ($uniqueId) :id="{{ $idExpression }}" @else id="{{ $inputId }}" @endif
                    x-ref="input"
                    role="combobox"
                    autocomplete="off"
                    aria-autocomplete="list"
-                   aria-controls="{{ $inputId }}-listbox"
+                   :aria-controls="{{ $idExpression }} + '-listbox'"
                    :aria-expanded="open.toString()"
-                   :aria-activedescendant="activeDescendant('{{ $inputId }}')"
+                   :aria-activedescendant="activeDescendant({{ $idExpression }})"
                    placeholder="{{ $placeholder }}"
                    x-model="query"
                    @focus="openList(); $el.select()"
@@ -118,7 +150,7 @@
         </div>
 
         {{-- 候補 --}}
-        <ul id="{{ $inputId }}-listbox"
+        <ul :id="{{ $idExpression }} + '-listbox'"
             role="listbox"
             x-ref="list"
             x-show="open"
@@ -127,7 +159,7 @@
             class="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800">
 
             <template x-for="(item, index) in filtered" :key="item.value">
-                <li :id="`{{ $inputId }}-option-${index}`"
+                <li :id="{{ $idExpression }} + '-option-' + index"
                     role="option"
                     :aria-selected="(item.value === value).toString()"
                     @click="select(item)"
