@@ -114,6 +114,17 @@ abstract class TableDefinition
     }
 
     /**
+     * 保存ビュー(マイビュー)を使える一覧か。
+     *
+     * 有効にすると、絞り込みの組み合わせに名前を付けて保存し、
+     * プルダウンから呼び出せるようになる(ユーザーごと)。
+     */
+    public function savedViews(): bool
+    {
+        return false;
+    }
+
+    /**
      * キーワード検索欄のプレースホルダ。
      */
     public function searchPlaceholder(): string

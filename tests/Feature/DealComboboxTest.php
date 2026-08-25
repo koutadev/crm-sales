@@ -260,7 +260,7 @@ class DealComboboxTest extends TestCase
 
         $queries = $this->countQueries(fn () => $this->get(route('deals.index'))->assertOk());
 
-        $this->assertSame(8, $queries, '商談一覧のクエリ本数は 8 本のまま。');
+        $this->assertSame(9, $queries, '商談一覧のクエリ本数は 9 本のまま(保存ビューの読み込み 1 本を含む)。');
     }
 
     #[Test]

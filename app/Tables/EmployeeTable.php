@@ -27,6 +27,14 @@ class EmployeeTable extends TableDefinition
         return 'masters.employees';
     }
 
+    /**
+     * よく使う絞り込みを保存ビュー(マイビュー)として残せるようにする。
+     */
+    public function savedViews(): bool
+    {
+        return true;
+    }
+
     public function query(): Builder
     {
         return Employee::query()->with(['department:id,name', 'position:id,name']);

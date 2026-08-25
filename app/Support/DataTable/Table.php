@@ -2,6 +2,7 @@
 
 namespace App\Support\DataTable;
 
+use App\Models\SavedView;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -21,6 +22,9 @@ class Table
     /**
      * @param  LengthAwarePaginator<int, Model>  $paginator
      */
+    /** @var Collection<int, SavedView>|null 保存ビュー(描画時に一度だけ読む) */
+    private ?Collection $savedViews = null;
+
     public function __construct(
         public readonly TableDefinition $definition,
         public readonly TableState $state,
@@ -43,6 +47,42 @@ class Table
     public function columns(): array
     {
         return $this->definition->columns();
+    }
+
+    /**
+     * この一覧の保存ビュー(自分のぶんだけ)。
+     *
+     * 使わない一覧では 1 本もクエリを投げない。
+     *
+     * @return Collection<int, SavedView>
+     */
+    public function savedViews(): Collection
+    {
+        if (! $this->definition->savedViews()) {
+            return collect();
+        }
+
+        return $this->savedViews ??= SavedView::forTable(request()->user()?->id, $this->definition->key());
+    }
+
+    /**
+     * 適用中の保存ビュー。
+     */
+    public function activeView(): ?SavedView
+    {
+        if ($this->state->view === '') {
+            return null;
+        }
+
+        return $this->savedViews()->firstWhere('id', (int) $this->state->view);
+    }
+
+    /**
+     * 保存ビューを呼び出す URL。
+     */
+    public function viewUrl(SavedView $view): string
+    {
+        return route($this->definition->routeName().'.index', ['view' => $view->id]);
     }
 
     /**

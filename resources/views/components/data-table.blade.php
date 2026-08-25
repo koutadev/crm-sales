@@ -9,6 +9,11 @@
 @endphp
 
 <div class="space-y-4">
+    @if ($table->definition->savedViews())
+        {{-- 保存ビュー(マイビュー) --}}
+        <x-saved-views :table="$table" />
+    @endif
+
     {{-- 検索・絞り込み --}}
     <form method="GET" action="{{ $table->indexUrl() }}"
           class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">

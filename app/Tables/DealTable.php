@@ -35,6 +35,15 @@ class DealTable extends TableDefinition
      */
     private const MAX_STATIC_OPTIONS = 100;
 
+    /** 確度の絞り込み(「この値以上」で絞る)。 */
+    public const PROBABILITY_STEPS = [
+        '90' => '90% 以上',
+        '70' => '70% 以上',
+        '50' => '50% 以上',
+        '30' => '30% 以上',
+        '10' => '10% 以上',
+    ];
+
     /** 期間フィルタの基準日にできる列(既定は先頭)。 */
     public const BASIS_COLUMNS = [
         'expected_close_date' => '予定クローズ日',
@@ -49,6 +58,15 @@ class DealTable extends TableDefinition
     public function routeName(): string
     {
         return 'deals';
+    }
+
+    /**
+     * よく使う絞り込み(期間・顧客・営業担当・ステータスなど)の組み合わせを
+     * 保存ビュー(マイビュー)として残せるようにする。
+     */
+    public function savedViews(): bool
+    {
+        return true;
     }
 
     public function query(): Builder
@@ -121,12 +139,19 @@ class DealTable extends TableDefinition
      */
     public function statefulParameters(): array
     {
-        return ['period_basis', 'period_preset', 'period_from', 'period_to'];
+        return ['period_basis', 'period_preset', 'period_from', 'period_to', 'probability_min'];
     }
 
     public function applyExtraFilters(Builder $query, TableState $state): void
     {
         self::dateRangeFrom($state)->apply($query, self::basisColumn($state->extra('period_basis')));
+
+        // 確度は「この値以上」で絞る
+        $probability = $state->extra('probability_min');
+
+        if (array_key_exists($probability, self::PROBABILITY_STEPS)) {
+            $query->where('probability', '>=', (int) $probability);
+        }
     }
 
     /**

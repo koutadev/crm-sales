@@ -18,6 +18,7 @@ class TableState
      * @param  string  $direction  'asc' | 'desc'
      * @param  string  $trashed  '' (通常) | 'with' (削除済みも含む) | 'only' (削除済みのみ)
      * @param  array<string, string>  $extras  セレクト以外の絞り込み(期間フィルタなど)
+     * @param  string  $view  適用中の保存ビュー(マイビュー)の ID
      */
     public function __construct(
         public readonly string $search = '',
@@ -27,6 +28,7 @@ class TableState
         public readonly string $trashed = '',
         public readonly int $page = 1,
         public readonly array $extras = [],
+        public readonly string $view = '',
     ) {}
 
     public static function sessionKey(TableDefinition $definition): string
@@ -43,15 +45,26 @@ class TableState
     {
         $sessionKey = self::sessionKey($definition);
 
+        // 保存ビューの呼び出し(?view=<id>)は、条件をリクエストに足してから通常どおり解釈する
+        if ($definition->savedViews() && $request->filled('view')) {
+            SavedViewConditions::mergeInto($request, $definition->key());
+        }
+
         if ($request->boolean('reset')) {
-            $request->session()->forget($sessionKey);
+            // 「条件をクリア」は空の条件として覚える(既定ビューに戻さない)
+            $request->session()->put($sessionKey, []);
             $params = [];
         } elseif (self::hasAnyParameter($request, $definition)) {
             $params = self::extract($request, $definition);
             $request->session()->put($sessionKey, $params);
         } else {
-            /** @var array<string, mixed> $params */
-            $params = $request->session()->get($sessionKey, []);
+            /** @var array<string, mixed>|null $stored */
+            $stored = $request->session()->get($sessionKey);
+
+            // 前回の条件もなければ、既定ビューがあればそれで開く
+            $params = is_array($stored)
+                ? $stored
+                : ($definition->savedViews() ? SavedViewConditions::defaultParams($request, $definition->key()) ?? [] : []);
         }
 
         return self::fromParameters($params, $definition, $canViewTrashed);
@@ -62,7 +75,7 @@ class TableState
      */
     private static function hasAnyParameter(Request $request, TableDefinition $definition): bool
     {
-        $keys = ['q', 'sort', 'direction', 'trashed', 'page'];
+        $keys = ['q', 'sort', 'direction', 'trashed', 'page', 'view'];
 
         foreach ($definition->filters() as $filter) {
             $keys[] = $filter->name;
@@ -92,6 +105,7 @@ class TableState
             'direction' => (string) $request->string('direction'),
             'trashed' => (string) $request->string('trashed'),
             'page' => (int) $request->integer('page', 1),
+            'view' => (string) $request->string('view'),
         ];
 
         foreach ($definition->filters() as $filter) {
@@ -138,6 +152,11 @@ class TableState
 
         $page = isset($params['page']) ? max(1, (int) $params['page']) : 1;
 
+        $view = isset($params['view']) ? (string) $params['view'] : '';
+        if (! ctype_digit($view)) {
+            $view = '';
+        }
+
         $extras = [];
 
         foreach ($definition->statefulParameters() as $name) {
@@ -156,6 +175,7 @@ class TableState
             trashed: $trashed,
             page: $page,
             extras: $extras,
+            view: $view,
         );
     }
 
@@ -179,6 +199,11 @@ class TableState
         // 期間フィルタなども並び替え・ページ送り・CSV に引き継ぐ
         foreach ($this->extras as $name => $value) {
             $query[$name] = $value;
+        }
+
+        // 適用中の保存ビューは、並び替えやページ送りをしても保ったままにする
+        if ($this->view !== '') {
+            $query['view'] = $this->view;
         }
 
         $query['sort'] = $this->sort;
@@ -207,5 +232,18 @@ class TableState
     public function extra(string $name): string
     {
         return $this->extras[$name] ?? '';
+    }
+
+    /**
+     * 保存ビューに残す条件(ページ番号とビュー自身は含めない)。
+     *
+     * @return array<string, string>
+     */
+    public function conditions(): array
+    {
+        $query = $this->toQuery();
+        unset($query['view']);
+
+        return $query;
     }
 }

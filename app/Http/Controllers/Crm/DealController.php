@@ -77,6 +77,7 @@ class DealController extends MasterController
         return view($this->viewPath().'.index', array_merge($this->sharedViewData(), [
             'table' => $table,
             'summary' => DealListSummary::for($builder),
+            'probabilityMin' => $state->extra('probability_min'),
             'period' => [
                 'basis' => $basis,
                 'basisLabel' => DealTable::BASIS_COLUMNS[$basis],
