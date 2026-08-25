@@ -70,9 +70,21 @@ class DealController extends MasterController
 
         $table = new Table($definition, $state, $builder->paginate(), $canManageDeleted);
 
+        // 期間フィルタの入力欄に戻す値(相対プリセットはここでも現在日から計算される)
+        $range = DealTable::dateRangeFrom($state);
+        $basis = DealTable::basisColumn($state->extra('period_basis'));
+
         return view($this->viewPath().'.index', array_merge($this->sharedViewData(), [
             'table' => $table,
             'summary' => DealListSummary::for($builder),
+            'period' => [
+                'basis' => $basis,
+                'basisLabel' => DealTable::BASIS_COLUMNS[$basis],
+                'basisOptions' => DealTable::BASIS_COLUMNS,
+                'preset' => $range->preset->value,
+                'from' => $range->from?->toDateString(),
+                'to' => $range->to?->toDateString(),
+            ],
         ]));
     }
 

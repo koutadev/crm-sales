@@ -70,6 +70,7 @@ class TableBuilder
         $this->applyTrashed($query);
         $this->applySearch($query);
         $this->applyFilters($query);
+        $this->definition->applyExtraFilters($query, $this->state);
         $this->applySort($query);
 
         return $query;

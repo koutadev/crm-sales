@@ -9,6 +9,8 @@ use App\Models\Partner;
 use App\Support\DataTable\Column;
 use App\Support\DataTable\Filter;
 use App\Support\DataTable\TableDefinition;
+use App\Support\DataTable\TableState;
+use App\Support\Ui\DateRange;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,9 +20,19 @@ use Illuminate\Database\Eloquent\Model;
  * 金額は商談に保存済みの税込合計(amount_total)をそのまま並べる。
  * CSV には画面に出さない消費税・税抜も足すため、明細を eager load しておく
  * (明細から税率ごとの内訳を組み立てるのに必要)。
+ *
+ * 期間の絞り込みは「予定クローズ日」「受注日」を切り替えられる。
+ * 相対プリセット(今月・今四半期・今年度・過去 N 日)はアクセスした日を基準に
+ * 毎回計算されるため、月をまたいでも指定し直す必要はない。
  */
 class DealTable extends TableDefinition
 {
+    /** 期間フィルタの基準日にできる列(既定は先頭)。 */
+    public const BASIS_COLUMNS = [
+        'expected_close_date' => '予定クローズ日',
+        'ordered_at' => '受注日',
+    ];
+
     public function key(): string
     {
         return 'deals';
@@ -50,6 +62,7 @@ class DealTable extends TableDefinition
             new Column('probability', '確度', sortable: true, align: 'right', wrap: false),
             new Column('amount_total', '金額(税込)', sortable: true, align: 'right', wrap: false),
             new Column('expected_close_date', '予定クローズ日', sortable: true, wrap: false),
+            new Column('ordered_at', '受注日', sortable: true, wrap: false),
             new Column('employee_id', '営業担当'),
         ];
     }
@@ -65,8 +78,6 @@ class DealTable extends TableDefinition
             new Column('tax_amount', '消費税', align: 'right'),
             new Column('amount_excl_tax', '税抜', align: 'right'),
         ]);
-
-        $columns[] = new Column('ordered_at', '受注日');
 
         return $columns;
     }
@@ -96,6 +107,40 @@ class DealTable extends TableDefinition
         ];
     }
 
+    /**
+     * 期間フィルタは入力が 4 つ(基準日・プリセット・開始日・終了日)なので、
+     * セレクトの絞り込みとは別にパラメータ名を宣言して状態保持に載せる。
+     */
+    public function statefulParameters(): array
+    {
+        return ['period_basis', 'period_preset', 'period_from', 'period_to'];
+    }
+
+    public function applyExtraFilters(Builder $query, TableState $state): void
+    {
+        self::dateRangeFrom($state)->apply($query, self::basisColumn($state->extra('period_basis')));
+    }
+
+    /**
+     * 状態から期間を組み立てる(相対プリセットはここで現在日から計算される)。
+     */
+    public static function dateRangeFrom(TableState $state): DateRange
+    {
+        return DateRange::fromValues(
+            $state->extra('period_preset'),
+            $state->extra('period_from'),
+            $state->extra('period_to'),
+        );
+    }
+
+    /**
+     * 基準日の列名(不正な値や未指定は既定の予定クローズ日に寄せる)。
+     */
+    public static function basisColumn(string $value): string
+    {
+        return array_key_exists($value, self::BASIS_COLUMNS) ? $value : array_key_first(self::BASIS_COLUMNS);
+    }
+
     public function defaultSort(): string
     {
         return 'expected_close_date';
@@ -116,8 +161,8 @@ class DealTable extends TableDefinition
             $summary->totalTax(),
             $summary->totalExclTax(),
             $model->expected_close_date->format('Y/m/d'),
-            $model->employee?->name,
             $model->ordered_at?->format('Y/m/d'),
+            $model->employee?->name,
         ];
     }
 

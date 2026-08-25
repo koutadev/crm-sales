@@ -44,6 +44,11 @@
                 </div>
             @endforeach
 
+            @isset($extraFilters)
+                {{-- 期間フィルタなど、セレクト以外の絞り込み --}}
+                {{ $extraFilters }}
+            @endisset
+
             <div class="flex items-center gap-2">
                 <x-primary-button type="submit">検索</x-primary-button>
 

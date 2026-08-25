@@ -39,6 +39,21 @@
             </div>
 
             <x-data-table :table="$table">
+                {{-- 期間フィルタ(基準日を切り替えて絞り込む) --}}
+                <x-slot name="extraFilters">
+                    <x-form.segment name="period_basis" label="基準日"
+                                    :options="$period['basisOptions']"
+                                    :selected="$period['basis']" />
+
+                    <div class="min-w-56">
+                        <x-date-range name="period" label="期間"
+                                      :basis-label="$period['basisLabel']"
+                                      :preset="$period['preset']"
+                                      :from="$period['from']"
+                                      :to="$period['to']" />
+                    </div>
+                </x-slot>
+
                 @foreach ($table->items() as $deal)
                     <x-table.row :muted="$deal->trashed()">
                         <td class="whitespace-nowrap px-4 py-3 font-mono text-xs">
@@ -78,6 +93,10 @@
 
                         <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-400">
                             {{ $deal->expected_close_date->format('Y/m/d') }}
+                        </td>
+
+                        <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-400">
+                            {{ $deal->ordered_at?->format('Y/m/d') ?? '—' }}
                         </td>
 
                         <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-400">

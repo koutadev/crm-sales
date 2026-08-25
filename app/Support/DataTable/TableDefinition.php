@@ -88,6 +88,32 @@ abstract class TableDefinition
     }
 
     /**
+     * 絞り込み条件のうち、セレクト以外で送るパラメータ名。
+     *
+     * 期間フィルタのように複数の入力をまとめて送るものは、ここに名前を並べると
+     * 他の絞り込みと同じように前回の状態が保持され、並び替えやページ送りにも引き継がれる。
+     *
+     * @return list<string>
+     */
+    public function statefulParameters(): array
+    {
+        return [];
+    }
+
+    /**
+     * 追加パラメータ(statefulParameters)による絞り込み。
+     *
+     * 期間フィルタのようにセレクト 1 つでは表せない条件は、ここでクエリに反映する。
+     * 一覧・CSV・サマリはいずれも同じクエリを通るため、書くのは 1 か所でよい。
+     *
+     * @param  Builder<covariant Model>  $query
+     */
+    public function applyExtraFilters(Builder $query, TableState $state): void
+    {
+        //
+    }
+
+    /**
      * キーワード検索欄のプレースホルダ。
      */
     public function searchPlaceholder(): string

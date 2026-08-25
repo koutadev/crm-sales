@@ -30,16 +30,31 @@ class DateRange
      */
     public static function fromRequest(Request $request, string $name, ?CarbonInterface $asOf = null): self
     {
-        $preset = DateRangePreset::resolve($request->query($name.'_preset') ?? $request->input($name.'_preset'));
+        return self::fromValues(
+            $request->input($name.'_preset'),
+            $request->input($name.'_from'),
+            $request->input($name.'_to'),
+            $asOf,
+        );
+    }
+
+    /**
+     * 値から期間を組み立てる。
+     *
+     * 一覧の状態保持(セッション)から復元する場合など、リクエスト以外の経路で使う。
+     */
+    public static function fromValues(mixed $preset, mixed $from, mixed $to, ?CarbonInterface $asOf = null): self
+    {
+        $preset = DateRangePreset::resolve(is_string($preset) ? $preset : null);
 
         if ($preset->isRelative()) {
-            [$from, $to] = $preset->range($asOf);
+            [$rangeFrom, $rangeTo] = $preset->range($asOf);
 
-            return new self($preset, $from, $to);
+            return new self($preset, $rangeFrom, $rangeTo);
         }
 
-        $from = self::parse($request->input($name.'_from'));
-        $to = self::parse($request->input($name.'_to'));
+        $from = self::parse($from);
+        $to = self::parse($to);
 
         if ($from === null && $to === null) {
             return new self(DateRangePreset::None);
@@ -66,8 +81,8 @@ class DateRange
      *
      * @template TModel of \Illuminate\Database\Eloquent\Model
      *
-     * @param  Builder<TModel>  $query
-     * @return Builder<TModel>
+     * @param  Builder<covariant TModel>  $query
+     * @return Builder<covariant TModel>
      */
     public function apply(Builder $query, string $column): Builder
     {

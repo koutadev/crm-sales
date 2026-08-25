@@ -17,6 +17,7 @@ class TableState
      * @param  array<string, string>  $filters
      * @param  string  $direction  'asc' | 'desc'
      * @param  string  $trashed  '' (通常) | 'with' (削除済みも含む) | 'only' (削除済みのみ)
+     * @param  array<string, string>  $extras  セレクト以外の絞り込み(期間フィルタなど)
      */
     public function __construct(
         public readonly string $search = '',
@@ -25,6 +26,7 @@ class TableState
         public readonly string $direction = 'desc',
         public readonly string $trashed = '',
         public readonly int $page = 1,
+        public readonly array $extras = [],
     ) {}
 
     public static function sessionKey(TableDefinition $definition): string
@@ -66,6 +68,10 @@ class TableState
             $keys[] = $filter->name;
         }
 
+        foreach ($definition->statefulParameters() as $name) {
+            $keys[] = $name;
+        }
+
         foreach ($keys as $key) {
             if ($request->has($key)) {
                 return true;
@@ -90,6 +96,10 @@ class TableState
 
         foreach ($definition->filters() as $filter) {
             $params[$filter->name] = (string) $request->string($filter->name);
+        }
+
+        foreach ($definition->statefulParameters() as $name) {
+            $params[$name] = (string) $request->string($name);
         }
 
         return $params;
@@ -128,6 +138,16 @@ class TableState
 
         $page = isset($params['page']) ? max(1, (int) $params['page']) : 1;
 
+        $extras = [];
+
+        foreach ($definition->statefulParameters() as $name) {
+            $value = isset($params[$name]) ? (string) $params[$name] : '';
+
+            if ($value !== '') {
+                $extras[$name] = $value;
+            }
+        }
+
         return new self(
             search: trim((string) ($params['q'] ?? '')),
             filters: $filters,
@@ -135,6 +155,7 @@ class TableState
             direction: $direction,
             trashed: $trashed,
             page: $page,
+            extras: $extras,
         );
     }
 
@@ -155,6 +176,11 @@ class TableState
             $query[$name] = $value;
         }
 
+        // 期間フィルタなども並び替え・ページ送り・CSV に引き継ぐ
+        foreach ($this->extras as $name => $value) {
+            $query[$name] = $value;
+        }
+
         $query['sort'] = $this->sort;
         $query['direction'] = $this->direction;
 
@@ -172,6 +198,14 @@ class TableState
 
     public function hasConditions(): bool
     {
-        return $this->search !== '' || $this->filters !== [] || $this->trashed !== '';
+        return $this->search !== '' || $this->filters !== [] || $this->trashed !== '' || $this->extras !== [];
+    }
+
+    /**
+     * 追加パラメータの値(未指定なら空文字)。
+     */
+    public function extra(string $name): string
+    {
+        return $this->extras[$name] ?? '';
     }
 }
