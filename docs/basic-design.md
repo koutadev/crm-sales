@@ -205,6 +205,7 @@ erDiagram
 | 顧客・営業担当・商品の選択（入力で絞る） | `<x-form.combobox>` ＋ `App\Http\Controllers\Crm\OptionsController`（候補が多いときのみ） |
 | 絞り込み条件の記憶と保存ビュー（マイビュー） | `App\Support\DataTable\TableState` ＋ `App\Models\SavedView`（ユーザーごと） |
 | 商談のカンバン表示とドラッグでのステータス変更 | `App\Support\Crm\DealKanban` ＋ `App\Http\Controllers\Crm\DealStatusController` |
+| 商談詳細の 1 ページ集約（概要／明細／活動タブ・次アクション） | `resources/views/crm/deals/show.blade.php` ＋ `partials/`（表示の整理のみ） |
 | ダッシュボードの集計 | `App\Support\Crm\DealMetrics`（KPI／月次／担当者別／パイプラインで各 1 クエリ） |
 
 ## 11. 静的デモ・仮想クライアント設定

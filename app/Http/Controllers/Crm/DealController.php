@@ -6,6 +6,7 @@ use App\Enums\ActivityType;
 use App\Enums\DealStatus;
 use App\Http\Controllers\Masters\MasterController;
 use App\Http\Requests\Crm\DealRequest;
+use App\Models\Activity;
 use App\Models\Deal;
 use App\Models\DealItem;
 use App\Models\Employee;
@@ -114,15 +115,23 @@ class DealController extends MasterController
             ->with(['partner', 'partnerContact', 'employee', 'items.product', 'items.taxRate'])
             ->findOrFail($id);
 
+        $activities = $deal->activities()
+            ->with('employee:id,name')
+            ->orderByDesc('activity_at')
+            ->orderByDesc('id')
+            ->limit(100)
+            ->get();
+
         return view($this->viewPath().'.show', array_merge($this->sharedViewData(), [
             'deal' => $deal,
             'summary' => $deal->amountSummary(),
-            'activities' => $deal->activities()
-                ->with('employee:id,name')
-                ->orderByDesc('activity_at')
-                ->orderByDesc('id')
-                ->limit(100)
-                ->get(),
+            'activities' => $activities,
+            // 次アクション = これから予定されている活動のうち、いちばん近いもの
+            // (取得済みの活動から選ぶだけなのでクエリは増えない)
+            'nextAction' => $activities
+                ->filter(static fn (Activity $activity): bool => $activity->activity_at->isFuture())
+                ->sortBy('activity_at')
+                ->first(),
             'employeeOptions' => Employee::query()->active()->orderBy('code')->pluck('name', 'id')->all(),
             'defaultEmployeeId' => Employee::query()->where('user_id', $request->user()?->id)->value('id'),
             'activityTypeOptions' => ActivityType::options(),

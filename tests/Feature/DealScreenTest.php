@@ -172,7 +172,7 @@ class DealScreenTest extends TestCase
             'type' => ActivityType::Visit->value,
             'activity_at' => '2026-08-20 10:30',
             'note' => '訪問して要件を確認した。',
-        ])->assertRedirect(route('deals.show', $deal->id));
+        ])->assertRedirect(route('deals.show', ['id' => $deal->id, 'tab' => 'activities']));
 
         $activity = Activity::query()->sole();
 

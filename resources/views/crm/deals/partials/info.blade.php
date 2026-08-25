@@ -1,8 +1,6 @@
-{{-- 商談情報 --}}
-<div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-    <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200">商談情報</h3>
-
-    <dl class="mt-4 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+{{-- 基本情報 --}}
+<x-card title="基本情報">
+    <dl class="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
             <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">顧客</dt>
             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
@@ -14,6 +12,15 @@
                 @else
                     &mdash;
                 @endif
+            </dd>
+        </div>
+
+        <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">ステータス</dt>
+            <dd class="mt-1">
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $deal->status->badgeClass() }}">
+                    {{ $deal->status->label() }}
+                </span>
             </dd>
         </div>
 
@@ -32,4 +39,4 @@
             </div>
         @endforeach
     </dl>
-</div>
+</x-card>

@@ -23,7 +23,8 @@ class DealActivityController extends Controller
         ]);
 
         return redirect()
-            ->route('deals.show', $deal->id)
+            // 追加した活動がすぐ見えるよう、活動タブを開いた状態で戻す
+            ->route('deals.show', ['id' => $deal->id, 'tab' => 'activities'])
             ->with('status', '活動履歴を追加しました。');
     }
 }

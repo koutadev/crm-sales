@@ -47,6 +47,15 @@ class CrmSampleSeeder extends Seeder
         '採用ブランディング支援', '業務フロー可視化コンサル',
     ];
 
+    /** 次アクション(これからの予定)の文面。 */
+    private const NEXT_ACTIONS = [
+        '次回打ち合わせ。要件の詰めと概算スケジュールの共有。',
+        '見積の内容についてオンラインで説明。',
+        '先方の稟議状況を確認する電話。',
+        '追加要望のヒアリング（訪問）。',
+        '契約書ドラフトの確認依頼。',
+    ];
+
     private const NOTES = [
         '初回訪問。現行システムの運用負荷が高く、刷新を検討中とのこと。',
         '提案書を送付。来週あらためて打ち合わせ予定。',
@@ -307,6 +316,20 @@ class CrmSampleSeeder extends Seeder
                     ->format('Y-m-d H:i:s'),
                 'note' => fn (): string => fake()->randomElement(self::NOTES),
             ]);
+
+        // 進行中の商談には「次アクション」として先の予定も入れておく
+        // (商談詳細の上部に次にやることが出る)
+        if ($deal->status->isOpen() && fake()->boolean(60)) {
+            Activity::factory()->create([
+                'partner_id' => $deal->partner_id,
+                'deal_id' => $deal->id,
+                'employee_id' => $employee->id,
+                'activity_at' => fake()
+                    ->dateTimeBetween(Carbon::now()->addDay(), Carbon::now()->addDays(14))
+                    ->format('Y-m-d H:i:s'),
+                'note' => fake()->randomElement(self::NEXT_ACTIONS),
+            ]);
+        }
     }
 
     /**
