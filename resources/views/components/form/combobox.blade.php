@@ -93,7 +93,7 @@
          @if ($optionsExpression) x-effect="setOptions({{ $optionsExpression }})" @endif
          @if ($onSelect) x-on:combobox-selected="{{ $onSelect }}" @endif
          @keydown.escape.stop="close()"
-         @click.outside="close()"
+         @click.outside="closeFromOutside($event)"
          @if ($source) data-source="{{ $source }}" @endif
          class="relative">
 
@@ -161,7 +161,8 @@
             x-show="open"
             x-cloak
             x-transition.opacity.duration.100ms
-            class="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            {{-- 位置と幅と重なり順は popup.js が指定する（器の overflow で切られないよう body 直下へ移す） --}}
+            class="fixed z-40 max-h-60 overflow-auto rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800">
 
             <template x-for="(item, index) in filtered" :key="item.value">
                 <li :id="{{ $idExpression }} + '-option-' + index"

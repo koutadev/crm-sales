@@ -12,6 +12,8 @@ import normalizeSearchText from './search-text';
 
 const DEBOUNCE_MS = 250;
 
+import createPopup from './popup';
+
 export default function combobox(config = {}) {
     return {
         // 候補
@@ -32,9 +34,19 @@ export default function combobox(config = {}) {
         fetched: false,
         timer: null,
 
+        popup: null,
+
         init() {
             this.filtered = this.options;
             this.syncLabel();
+
+            // 候補の一覧は開いている間だけ body 直下へ移す（器の overflow で切られないように）
+            this.popup = createPopup({ anchor: this.$el, panel: this.$refs.list, matchWidth: true });
+
+            this.$watch('open', (value) => (value ? this.$nextTick(() => this.popup.show()) : this.popup.hide()));
+
+            // 候補が入れ替わると高さが変わるので、開いていれば置き直す
+            this.$watch('filtered', () => this.open && this.$nextTick(() => this.popup.reposition()));
 
             // 外側と x-modelable で結んでいる場合、値は後から入ってくることがある
             this.$watch('value', () => this.syncLabel());
@@ -118,6 +130,19 @@ export default function combobox(config = {}) {
             if (this.isAsync && !this.fetched) {
                 this.fetchOptions();
             }
+        },
+
+        destroy() {
+            this.popup?.hide();
+        },
+
+        /** 外側のクリックで閉じる（body へ移した候補一覧の中は「外側」ではない） */
+        closeFromOutside(event) {
+            if (this.popup?.contains(event.target)) {
+                return;
+            }
+
+            this.close();
         },
 
         /**

@@ -8,6 +8,8 @@ const pad = (value) => String(value).padStart(2, '0');
 
 const toKey = (year, month, day) => `${year}-${pad(month)}-${pad(day)}`;
 
+import createPopup from './popup';
+
 export default function datepicker(config = {}) {
     return {
         value: config.value ?? '',
@@ -21,11 +23,32 @@ export default function datepicker(config = {}) {
         max: config.max ?? '',
         weekStart: config.weekStart ?? 1,
 
+        popup: null,
+
         init() {
             this.syncFromValue();
 
             // 外から value を変えられた場合（日付範囲ピッカーのプリセット選択など）
             this.$watch('value', () => this.syncFromValue());
+
+            // カレンダーは開いている間だけ body 直下へ移し、画面内に収める
+            // （狭い画面では下から出るシートにする）
+            this.popup = createPopup({ anchor: this.$el, panel: this.$refs.panel, sheet: true });
+
+            this.$watch('open', (value) => (value ? this.$nextTick(() => this.popup.show()) : this.popup.hide()));
+        },
+
+        destroy() {
+            this.popup?.hide();
+        },
+
+        /** 外側のクリックで閉じる（body へ移したカレンダーの中は「外側」ではない） */
+        closeFromOutside(event) {
+            if (this.popup?.contains(event.target)) {
+                return;
+            }
+
+            this.close();
         },
 
         /** value（YYYY-MM-DD）から表示と表示中の月を組み立てる */

@@ -73,7 +73,7 @@
 <x-form.field :name="$name" :label="$label" :for="$inputId" :help="$help">
     <div x-data="dateRange(@js($config))"
          @keydown.escape.stop="open = false"
-         @click.outside="open = false"
+         @click.outside="closeFromOutside($event)"
          class="relative">
 
         <input type="hidden" name="{{ $name }}_preset" :value="preset">
@@ -113,14 +113,20 @@
             </button>
         </div>
 
-        {{-- ポップオーバー --}}
+        {{--
+            ポップオーバー。
+
+            開いている間は popup.js が body 直下へ移し、画面内に収まる位置に置き直す
+            （器の overflow で切られない・下にはみ出さない・狭い画面では下から出る）。
+        --}}
         <div id="{{ $inputId }}-panel"
+             x-ref="panel"
              x-show="open"
              x-cloak
              x-transition.opacity.duration.100ms
              role="dialog"
              aria-label="期間を選ぶ"
-             class="absolute z-30 mt-1 w-max max-w-[calc(100vw-2rem)] rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+             class="fixed z-40 w-max max-w-[calc(100vw-1rem)] rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
 
             <div class="flex flex-col gap-4 sm:flex-row">
                 {{-- 相対プリセット --}}

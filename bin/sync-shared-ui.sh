@@ -81,6 +81,7 @@ PATHS=(
     "resources/views/masters/partners"
     "resources/views/masters/simple"
     "resources/views/users"
+    "bin/mobile-audit.mjs"
 )
 
 # 共通部分のディレクトリの中にある「この製品だけのファイル」。同期で消さない。

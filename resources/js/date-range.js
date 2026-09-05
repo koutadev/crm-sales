@@ -4,15 +4,39 @@
  * 相対プリセット（今月・今四半期など）は「キー」を送るだけで、実際の期間は
  * サーバ側が受け取るたびに計算し直す。ここで持っている日付は表示用。
  */
+import createPopup from './popup';
+
 export default function dateRange(config = {}) {
     return {
         open: false,
+        popup: null,
         presets: config.presets ?? [],
         preset: config.preset ?? 'none',
         from: config.from ?? '',
         to: config.to ?? '',
         submitOnChange: config.submitOnChange ?? false,
         noneLabel: config.noneLabel ?? '指定なし',
+
+        init() {
+            // パネルは開いている間だけ body 直下へ移し、画面内に収める
+            // （狭い画面では下から出るシートにする）
+            this.popup = createPopup({ anchor: this.$el, panel: this.$refs.panel, sheet: true });
+
+            this.$watch('open', (value) => (value ? this.$nextTick(() => this.popup.show()) : this.popup.hide()));
+        },
+
+        destroy() {
+            this.popup?.hide();
+        },
+
+        /** 外側のクリックで閉じる（body へ移したパネルの中は「外側」ではない） */
+        closeFromOutside(event) {
+            if (this.popup?.contains(event.target)) {
+                return;
+            }
+
+            this.open = false;
+        },
 
         /** ボタンに出す現在の期間 */
         get label() {

@@ -50,7 +50,7 @@
 <div x-data="datepicker(@js($config))"
      x-modelable="value"
      @keydown.escape.stop="close()"
-     @click.outside="close()"
+     @click.outside="closeFromOutside($event)"
      {{ $attributes->merge(['class' => 'relative']) }}>
 
     @if ($name !== null)
@@ -83,13 +83,20 @@
         </button>
     </div>
 
-    {{-- カレンダー --}}
-    <div x-show="open"
+    {{--
+        カレンダー。
+
+        開いている間は popup.js が body 直下へ移し、画面内に収まる位置に置き直す
+        （器の overflow で切られない・下にはみ出さない・狭い画面では下から出る）。
+        位置と重なり順は JS が指定するので、ここでは見た目だけを持たせる。
+    --}}
+    <div x-ref="panel"
+         x-show="open"
          x-cloak
          x-transition.opacity.duration.100ms
          role="dialog"
          aria-label="日付を選ぶ"
-         class="absolute z-40 mt-1 w-72 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+         class="fixed z-40 w-72 max-w-[calc(100vw-1rem)] rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
 
         {{-- 年月の切り替え --}}
         <div class="flex items-center justify-between gap-2">
