@@ -50,6 +50,17 @@ abstract class MasterController extends Controller
     abstract protected function resourceLabel(): string;
 
     /**
+     * 登録・編集・削除に必要な権限。
+     *
+     * 既定は共通マスタと同じ master.manage。マスタ単位に権限を分ける場合は
+     * ここを上書きし、ルート側(MasterRoutes)にも同じ権限を渡すこと。
+     */
+    protected function managePermission(): PermissionName
+    {
+        return PermissionName::MasterManage;
+    }
+
+    /**
      * モーダルの詳細に出す項目。
      *
      * 空を返すと詳細モーダルを使わない一覧として扱う(行クリックの導線を出さない)。
@@ -139,7 +150,7 @@ abstract class MasterController extends Controller
             'record' => $record,
             'rows' => $this->detailRows($record),
             'fieldsView' => $this->fieldsView(),
-            'canManage' => request()->user()?->can(PermissionName::MasterManage->value) ?? false,
+            'canManage' => request()->user()?->can($this->managePermission()->value) ?? false,
             'detailTitle' => $this->detailTitle($record),
         ]);
     }
@@ -221,6 +232,8 @@ abstract class MasterController extends Controller
         return [
             'resourceLabel' => $this->resourceLabel(),
             'routeName' => $this->definition()->routeName(),
+            // 一覧の「新規登録」「編集 / 削除」を出すかの判定に使う
+            'managePermission' => $this->managePermission()->value,
         ];
     }
 

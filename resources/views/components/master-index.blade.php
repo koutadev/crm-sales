@@ -3,6 +3,8 @@
     'resourceLabel',
     'routeName',
     'initialDetail' => null,
+    // 登録・編集に必要な権限。マスタ単位に権限を分ける場合だけ渡す
+    'managePermission' => \App\Enums\PermissionName::MasterManage->value,
 ])
 
 {{--
@@ -22,7 +24,7 @@
                     {{ $headerActions }}
                 @endisset
 
-                @can(\App\Enums\PermissionName::MasterManage->value)
+                @can($managePermission)
                     <a href="{{ route($routeName.'.create') }}"
                        class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-primary-hover">
                         {{ $resourceLabel }}を新規登録

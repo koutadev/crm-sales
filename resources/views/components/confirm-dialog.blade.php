@@ -6,6 +6,8 @@
     'confirm' => '実行する',
     'cancel' => 'キャンセル',
     'variant' => 'danger',
+    // 実行フォームに一緒に送る値（例: 戻り先）
+    'fields' => [],
 ])
 
 {{--
@@ -34,6 +36,10 @@
                 @if (strtoupper($method) !== 'POST')
                     @method($method)
                 @endif
+
+                @foreach ($fields as $field => $value)
+                    <input type="hidden" name="{{ $field }}" value="{{ $value }}">
+                @endforeach
 
                 <x-button type="submit" :variant="$variant">{{ $confirm }}</x-button>
             </form>

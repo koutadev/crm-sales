@@ -1,6 +1,8 @@
 @props([
     'initialDetail' => null,
     'resourceLabel' => 'データ',
+    'detailView' => 'masters._detail',
+    'deletable' => true,
 ])
 
 {{--
@@ -8,6 +10,10 @@
 
     x-master-index が中で使うので、各マスタの画面に書くことは何もない。
     行側は <x-table.row :detail-url="…"> を指定するだけ。
+
+    共通マスタ以外の一覧(レッスン枠など)で使う場合は、モーダルの中身のビューを
+    detail-view で差し替える。論理削除を使わない画面は :deletable="false" にすると
+    削除の確認ダイアログを置かない。
 --}}
 <div x-data="masterDetail()" @open-detail.window="load($event.detail)">
     <x-modal name="master-detail" size="lg" :show="$initialDetail !== null">
@@ -23,7 +29,7 @@
         @if ($initialDetail !== null)
             {{-- バリデーションエラーで戻ってきた場合は、サーバ側で描画した中身をそのまま出す --}}
             <div x-show="! loading && ! failed && content === ''">
-                @include('masters._detail', $initialDetail)
+                @include($detailView, $initialDetail)
             </div>
         @endif
 
@@ -33,6 +39,7 @@
 </div>
 
 {{-- 削除の確認。対象は開くときに渡すので、一覧に 1 つあればよい --}}
+@if ($deletable)
 <div x-data="{ action: '', label: '' }"
      @open-delete.window="action = $event.detail.action; label = $event.detail.label;
                           $nextTick(() => $dispatch('open-modal', 'master-delete'))">
@@ -55,3 +62,4 @@
         </x-slot>
     </x-modal>
 </div>
+@endif

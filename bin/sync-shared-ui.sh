@@ -8,7 +8,11 @@
 #
 # 取り込むのは「業務によらない共通部分」だけ。CRM 固有の画面・コントローラ
 # (crm/ 配下、商品と税率のマスタ画面など)は対象外にしてある。
-# 取り込み後は差分を git で確認し、必要なら CRM 側の上書き(CrmNavigationMenu など)を直すこと。
+#
+# 同期は rsync --delete なので、共通部分のディレクトリの中に置いた製品固有の
+# ファイルは、そのままだと消えてしまう。消したくないものは KEEP に並べておくこと
+# (KEEP は --exclude になり、転送も削除もされなくなる)。
+# 取り込み後は差分を git で確認し、npm run build と composer ci を通すこと。
 
 set -euo pipefail
 
@@ -25,7 +29,9 @@ fi
 #  共通の変更が入ったときは、こちら側にも同じ変更を手で入れる)
 PATHS=(
     "app/Support/DataTable"
-    "app/Support/Navigation"
+    # app/Support/Navigation は同期しない
+    #   … NavigationMenu.php を製品ごとに書き換えているため(メニュー構成は製品固有)。
+    #     NavItem / NavSection に共通の変更が入ったときは手で取り込む。
     "app/Support/Ui"
     "app/Support/Masters"
     "app/Support/Dashboard"
@@ -77,7 +83,27 @@ PATHS=(
     "resources/views/users"
 )
 
-RSYNC_FLAGS=(-a --delete-excluded)
+# 共通部分のディレクトリの中にある「この製品だけのファイル」。同期で消さない。
+KEEP=(
+    # いまのところ CRM 固有のファイルは共通部分のディレクトリに置いていない。
+    # (CRM の画面は crm/ 配下、メニューの差し替えは app/Support/Crm/CrmNavigationMenu.php)
+)
+
+# そのパスに効かせる --exclude を組み立てる(KEEP からの相対パスにする)
+excludes_for() {
+    local path="$1" keep
+    EXCLUDES=()
+
+    for keep in ${KEEP[@]+"${KEEP[@]}"}; do
+        case "$keep" in
+            "$path/"*) EXCLUDES+=("--exclude=${keep#"$path/"}") ;;
+        esac
+    done
+}
+
+# --delete で「基盤から消えたファイル」を追随して消す。
+# --delete-excluded は使わない(除外＝この製品固有のファイルまで消してしまうため)。
+RSYNC_FLAGS=(-a --delete)
 
 if [ "${1:-}" = "--check" ]; then
     RSYNC_FLAGS+=(--dry-run --itemize-changes)
@@ -92,18 +118,22 @@ for path in "${PATHS[@]}"; do
         continue
     fi
 
+    excludes_for "$path"
+
     if [ -d "$src" ]; then
         mkdir -p "$dest"
-        rsync "${RSYNC_FLAGS[@]}" "$src/" "$dest/"
+        rsync "${RSYNC_FLAGS[@]}" ${EXCLUDES[@]+"${EXCLUDES[@]}"} "$src/" "$dest/"
     else
         mkdir -p "$(dirname "$dest")"
-        rsync "${RSYNC_FLAGS[@]}" "$src" "$dest"
+        rsync "${RSYNC_FLAGS[@]}" ${EXCLUDES[@]+"${EXCLUDES[@]}"} "$src" "$dest"
     fi
 done
 
 if [ "${1:-}" = "--check" ]; then
     echo
     echo "--check なので取り込みはしていません。"
+    echo "上の *deleting の行が「同期すると消えるファイル」です。"
+    echo "製品固有のものが並んでいたら、KEEP に足してから同期してください。"
 else
     echo
     echo "取り込みました。git diff で差分を確認し、npm run build と composer ci を通してください。"

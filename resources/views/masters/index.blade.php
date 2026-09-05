@@ -1,7 +1,5 @@
 @php
-    use App\Enums\PermissionName;
-
-    $canManage = auth()->user()?->can(PermissionName::MasterManage->value) ?? false;
+    $user = auth()->user();
 @endphp
 
 {{-- マスタ管理のハブ。各マスタへの入口をカードで並べる。 --}}
@@ -53,7 +51,7 @@
                         <div class="mt-4 flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700">
                             <x-button size="sm" variant="secondary" :href="$card->indexUrl()">開く</x-button>
 
-                            @if ($canManage)
+                            @if ($user?->can($card->managePermission()->value))
                                 <x-button size="sm" variant="ghost" :href="$card->createUrl()">新規登録</x-button>
                             @endif
                         </div>

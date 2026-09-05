@@ -2,11 +2,13 @@
     'record',
     'routeName',
     'resourceLabel',
+    // 登録・編集に必要な権限。マスタ単位に権限を分ける場合だけ渡す
+    'managePermission' => \App\Enums\PermissionName::MasterManage->value,
 ])
 
 {{-- 一覧の「操作」列。権限と削除状態に応じて出し分ける --}}
 <td class="whitespace-nowrap px-4 py-3 text-right">
-    @can(\App\Enums\PermissionName::MasterManage->value)
+    @can($managePermission)
         @if ($record->trashed())
             {{-- 復元は管理者のみ --}}
             @if (auth()->user()?->isAdmin())

@@ -17,6 +17,8 @@ class MasterCard
      * @param  string  $icon  resources/views/components/icon.blade.php のアイコン名
      * @param  string  $routeName  一覧のルート名プレフィックス(例: masters.employees)
      * @param  class-string<BaseModel>  $modelClass  件数を数えるモデル
+     * @param  PermissionName|null  $viewPermission  一覧を開くのに必要な権限(既定: master.view)
+     * @param  PermissionName|null  $managePermission  登録・編集に必要な権限(既定: master.manage)
      */
     public function __construct(
         public readonly string $key,
@@ -25,6 +27,8 @@ class MasterCard
         public readonly string $icon,
         public readonly string $routeName,
         public readonly string $modelClass,
+        private readonly ?PermissionName $viewPermission = null,
+        private readonly ?PermissionName $managePermission = null,
     ) {}
 
     public function indexUrl(): string
@@ -42,7 +46,7 @@ class MasterCard
      */
     public function viewPermission(): PermissionName
     {
-        return PermissionName::MasterView;
+        return $this->viewPermission ?? PermissionName::MasterView;
     }
 
     /**
@@ -50,6 +54,6 @@ class MasterCard
      */
     public function managePermission(): PermissionName
     {
-        return PermissionName::MasterManage;
+        return $this->managePermission ?? PermissionName::MasterManage;
     }
 }

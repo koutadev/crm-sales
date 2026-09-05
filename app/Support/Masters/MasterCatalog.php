@@ -9,6 +9,7 @@ use App\Models\Partner;
 use App\Models\Position;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -98,6 +99,26 @@ class MasterCatalog
         return array_values(array_filter(
             $this->cards(),
             static fn (MasterCard $card): bool => Route::has($card->routeName.'.index'),
+        ));
+    }
+
+    /**
+     * このユーザーが開けるカードだけを返す。
+     *
+     * マスタごとに必要な権限が違う場合(管理者だけが扱うマスタなど)に、
+     * 開けない入口をハブに出さないための絞り込み。
+     *
+     * @return list<MasterCard>
+     */
+    public function visibleCards(?User $user): array
+    {
+        if ($user === null) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $this->availableCards(),
+            static fn (MasterCard $card): bool => $user->can($card->viewPermission()->value),
         ));
     }
 
