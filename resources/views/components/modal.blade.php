@@ -35,9 +35,14 @@
                    バリデーションエラー時に開いた状態で戻る
       確認ダイアログ: <x-confirm-dialog> を使う(誤操作防止で closable=false)
 
-    開閉は名前つきイベントで行う。
-      $dispatch('open-modal', 'employee-detail')
-      $dispatch('close')  … モーダルの中から閉じる
+    開閉は名前つきイベントで行う。開く側は次のどれでもよい。
+      <button data-open-modal="employee-detail">   … Alpine のスコープに関係なく効く（推奨）
+      $dispatch('open-modal', 'employee-detail')   … Alpine のスコープ内から
+      window.openModal('employee-detail')          … 素の JS から
+      $dispatch('close')                           … モーダルの中から閉じる
+
+    $dispatch は Alpine のマジックなので、x-data の外にあるボタンでは何も起きない。
+    レイアウトにルートの x-data が無い画面では data-open-modal を使うこと。
 --}}
 <div x-data="modal(@js(['name' => $name, 'show' => $shouldShow, 'closable' => $closable]))"
      x-on:open-modal.window="matches($event.detail) && open()"

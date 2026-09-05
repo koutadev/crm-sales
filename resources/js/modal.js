@@ -4,10 +4,55 @@
  * 開いているあいだはフォーカスをモーダル内に閉じ込め（フォーカストラップ）、
  * 閉じたら開く前の要素へフォーカスを戻す。背景のスクロールも止める。
  *
- *   $dispatch('open-modal', 'edit-employee')   // 開く
- *   $dispatch('close-modal', 'edit-employee')  // 閉じる
- *   $dispatch('close')                         // モーダル内から閉じる
+ * 開閉は window のイベントで行う。開く側は次の 3 通りが使える。
+ *
+ *   <button data-open-modal="edit-employee">編集</button>  // どこからでも（推奨）
+ *   $dispatch('open-modal', 'edit-employee')                // Alpine のスコープ内から
+ *   window.openModal('edit-employee')                       // 素の JS から
+ *
+ * $dispatch は Alpine のマジックなので、x-data の外にあるボタンでは何も起きない
+ * （レイアウトにルートの x-data が無いと、押しても沈黙して壊れる）。
+ * data-open-modal は document でクリックを拾って window イベントに変換するため、
+ * Alpine のスコープに関係なく動く。
  */
+/** 名前つきモーダルを開く（素の JS から呼べる） */
+export function openModal(name) {
+    window.dispatchEvent(new CustomEvent('open-modal', { detail: name }));
+}
+
+/** 名前つきモーダルを閉じる */
+export function closeModal(name) {
+    window.dispatchEvent(new CustomEvent('close-modal', { detail: name }));
+}
+
+/**
+ * data-open-modal / data-close-modal のクリックを拾って、window イベントに変換する。
+ *
+ * Alpine の起動前・スコープ外でも効くよう、document へ 1 つだけ登録する。
+ */
+export function registerModalTriggers() {
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+
+    document.addEventListener('click', (event) => {
+        const opener = event.target.closest('[data-open-modal]');
+
+        if (opener) {
+            event.preventDefault();
+            openModal(opener.dataset.openModal);
+
+            return;
+        }
+
+        const closer = event.target.closest('[data-close-modal]');
+
+        if (closer) {
+            event.preventDefault();
+            closeModal(closer.dataset.closeModal);
+        }
+    });
+}
+
 const FOCUSABLE =
     'a[href], button:not([disabled]), textarea:not([disabled]), select:not([disabled]), ' +
     "input:not([type='hidden']):not([disabled]), [tabindex]:not([tabindex='-1'])";

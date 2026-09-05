@@ -14,7 +14,9 @@
     確認ダイアログ(確認メッセージ + 実行 / キャンセル)。
 
         <x-button type="button" variant="danger"
-                  x-on:click="$dispatch('open-modal', 'delete-employee')">削除</x-button>
+                  data-open-modal="delete-employee">削除</x-button>
+
+    （Alpine のスコープ内なら x-on:click="$dispatch('open-modal', 'delete-employee')" でも同じ）
 
         <x-confirm-dialog name="delete-employee" title="社員を削除しますか？"
                           :action="route('masters.employees.destroy', $employee->id)"

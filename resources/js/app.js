@@ -5,7 +5,7 @@ import combobox from './combobox';
 import dateRange from './date-range';
 import datepicker from './datepicker';
 import masterDetail from './master-detail';
-import modal from './modal';
+import modal, { registerModalTriggers } from './modal';
 import registerToastStore from './toast';
 import './charts';
 
@@ -25,6 +25,9 @@ Alpine.data('datepicker', datepicker);
 
 // モーダル（フォーカストラップつき）
 Alpine.data('modal', modal);
+
+// data-open-modal / data-close-modal のクリックを拾う（Alpine のスコープ外でも開ける）
+registerModalTriggers();
 
 // 一覧の行クリックで開く詳細モーダル
 Alpine.data('masterDetail', masterDetail);
