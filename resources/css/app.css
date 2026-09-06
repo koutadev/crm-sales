@@ -26,6 +26,30 @@
 }
 
 /*
+ * iOS のセーフエリア（ホームインジケータ・ノッチ）を避けるための余白。
+ *
+ * 画面の下端に固定した操作ボタンは、そのままだとホームインジケータと重なって
+ * 押しにくい。env(safe-area-inset-*) の分だけ余白を足して逃がす。
+ *
+ * env() が実際の値を返すのは <meta name="viewport"> に viewport-fit=cover が
+ * ある画面だけで、それ以外や PC では 0 になる。max() で通常の余白を下限として
+ * 持たせてあるので、どこで見ても余白が消えることはない（＝PC の見た目は不変）。
+ *
+ *   <div class="sticky bottom-0 px-4 pt-4 pb-safe"> … </div>
+ *
+ * padding の一括指定（p-4 など）と混ぜると、どちらが後に来るかで結果が変わる。
+ * pt-4 / px-4 のように辺ごとの指定と組み合わせて使う。
+ */
+@utility pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@utility px-safe {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/*
  * キーボード操作時のフォーカスを、どの部品でも必ず見えるようにする。
  * :where() で詳細度 0 にしてあるので、部品ごとのリング指定があればそちらが優先される。
  */

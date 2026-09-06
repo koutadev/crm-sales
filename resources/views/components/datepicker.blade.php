@@ -70,12 +70,12 @@
                @required($required)
                @disabled($disabled)
                @if ($hasError) aria-invalid="true" @endif
-               class="{{ Input::classes(Size::resolve($size), $hasError) }} pe-10">
+               class="{{ Input::classes(Size::resolve($size), $hasError) }} pe-11 sm:pe-10">
 
         <button type="button"
                 @click="toggle()"
                 @disabled($disabled)
-                class="absolute inset-y-0 end-0 flex items-center px-2 text-gray-400 transition hover:text-gray-600 motion-reduce:transition-none dark:hover:text-gray-200"
+                class="absolute inset-y-0 end-0 flex min-w-11 items-center justify-center px-2 text-gray-400 transition hover:text-gray-600 motion-reduce:transition-none sm:min-w-0 dark:hover:text-gray-200"
                 aria-haspopup="dialog"
                 :aria-expanded="open.toString()"
                 aria-label="カレンダーを開く">

@@ -83,10 +83,16 @@ const MEASURE = `(() => {
         return r.right > vw + 1 || r.left < -1;
     });
     const outer = over.filter((el) => !over.includes(el.parentElement));
-    // 指で押す部品は 44px 四方が目安（iOS / Android のガイドライン）
+    // 指で押す部品は 44px 四方が目安（iOS / Android のガイドライン）。
+    // 文字のあるボタン・リンクは横幅が文言の長さで決まるので、高さだけを見る。
+    // 記号やアイコンだけ（‹ › ✕ など、文字も数字も含まないもの）は横幅も 44px を求める。
     const taps = [...document.querySelectorAll('a, button, [role="link"], select')].filter((el) => {
         const r = el.getBoundingClientRect();
-        return r.width > 0 && r.height > 0 && (r.height < 44 || r.width < 24);
+        if (r.width === 0 || r.height === 0) return false;
+
+        const iconOnly = !/[\\p{L}\\p{N}]/u.test(el.textContent);
+
+        return r.height < 44 || (iconOnly ? r.width < 44 : r.width < 24);
     });
     return {
         horizontalOverflow: document.documentElement.scrollWidth - vw,
