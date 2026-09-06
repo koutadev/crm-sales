@@ -94,7 +94,7 @@
                                     <tr>
                                         <td class="whitespace-nowrap px-5 py-3">
                                             <a href="{{ route('deals.index', ['status' => $row->status->value]) }}"
-                                               class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $row->status->badgeClass() }}">
+                                               class="inline-flex min-h-11 items-center rounded-full px-2 py-0.5 text-xs font-medium sm:min-h-0 {{ $row->status->badgeClass() }}">
                                                 {{ $row->status->label() }}
                                             </a>
                                         </td>
@@ -121,7 +121,7 @@
                     <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700">
                         <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200">最近の操作</h3>
                         <a href="{{ route('activity-logs.index') }}"
-                           class="text-xs font-medium text-primary-text hover:text-primary-hover">
+                           class="inline-flex min-h-11 items-center text-xs font-medium text-primary-text hover:text-primary-hover sm:min-h-0">
                             すべて見る &rarr;
                         </a>
                     </div>

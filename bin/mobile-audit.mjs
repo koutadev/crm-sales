@@ -83,14 +83,20 @@ const MEASURE = `(() => {
         return r.right > vw + 1 || r.left < -1;
     });
     const outer = over.filter((el) => !over.includes(el.parentElement));
+    // 指で押す部品は 44px 四方が目安（iOS / Android のガイドライン）
     const taps = [...document.querySelectorAll('a, button, [role="link"], select')].filter((el) => {
         const r = el.getBoundingClientRect();
-        return r.width > 0 && r.height > 0 && (r.height < 36 || r.width < 24);
+        return r.width > 0 && r.height > 0 && (r.height < 44 || r.width < 24);
     });
     return {
         horizontalOverflow: document.documentElement.scrollWidth - vw,
         offenders: outer.slice(0, 8).map((el) => ({ sel: label(el), overflowRight: Math.round(el.getBoundingClientRect().right - vw) })),
         smallTapTargets: taps.length,
+        smallTapExamples: taps.slice(0, 8).map((el) => {
+            const r = el.getBoundingClientRect();
+            return label(el) + ' 「' + (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 12) + '」 '
+                + Math.round(r.width) + 'x' + Math.round(r.height);
+        }),
     };
 })()`;
 

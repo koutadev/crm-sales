@@ -44,7 +44,7 @@
                     <x-primary-button type="submit">保存</x-primary-button>
 
                     <a href="{{ route($routeName.'.index') }}"
-                       class="text-sm text-gray-600 underline hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                       class="inline-flex min-h-11 items-center text-sm text-gray-600 underline hover:text-gray-900 sm:min-h-0 dark:text-gray-400 dark:hover:text-gray-200">
                         キャンセル
                     </a>
                 </div>

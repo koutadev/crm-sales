@@ -25,7 +25,7 @@
 
                         <td class="px-4 py-3 font-medium">
                             <a href="{{ route('customers.show', $customer->id) }}"
-                               class="text-primary-text hover:text-primary-hover hover:underline">
+                               class="inline-flex min-h-11 items-center text-primary-text hover:text-primary-hover hover:underline sm:min-h-0">
                                 {{ $customer->name }}
                             </a>
                         </td>
@@ -70,7 +70,7 @@
                                 @endcan
                             @else
                                 <a href="{{ route('customers.show', $customer->id) }}"
-                                   class="text-xs font-medium text-primary-text hover:text-primary-hover">
+                                   class="inline-flex min-h-11 items-center text-xs font-medium text-primary-text hover:text-primary-hover sm:min-h-0">
                                     詳細
                                 </a>
 
@@ -79,7 +79,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
-                                                class="text-xs font-medium text-rose-600 hover:text-rose-500 dark:text-rose-400"
+                                                class="inline-flex min-h-11 items-center text-xs font-medium text-rose-600 hover:text-rose-500 sm:min-h-0 dark:text-rose-400"
                                                 onclick="return confirm('この顧客を削除しますか?（論理削除のためデータは残ります）')">
                                             削除
                                         </button>

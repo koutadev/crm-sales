@@ -30,7 +30,7 @@
         @can(\App\Enums\PermissionName::MasterManage->value)
             <div class="mt-6 border-t border-gray-100 pt-4 dark:border-gray-700">
                 <a href="{{ route('masters.partners.edit', $customer->id) }}"
-                   class="text-sm text-primary-text underline hover:text-primary-hover">
+                   class="inline-flex min-h-11 items-center text-sm text-primary-text underline hover:text-primary-hover sm:min-h-0">
                     会社情報を編集する（取引先マスタ）
                 </a>
             </div>

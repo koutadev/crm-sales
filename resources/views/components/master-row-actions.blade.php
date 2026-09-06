@@ -20,7 +20,7 @@
             @if (auth()->user()?->isAdmin())
                 <button type="button"
                         data-open-modal="master-restore-{{ $record->id }}"
-                        class="text-xs font-medium text-emerald-600 transition hover:text-emerald-500 motion-reduce:transition-none dark:text-emerald-400">
+                        class="inline-flex min-h-11 items-center text-xs font-medium text-emerald-600 transition hover:text-emerald-500 motion-reduce:transition-none sm:min-h-0 dark:text-emerald-400">
                     復元
                 </button>
 
@@ -36,13 +36,13 @@
             @endif
         @else
             <a href="{{ route($routeName.'.edit', $record->id) }}"
-               class="text-xs font-medium text-primary-text hover:text-primary-hover">
+               class="inline-flex min-h-11 items-center text-xs font-medium text-primary-text hover:text-primary-hover sm:min-h-0">
                 編集
             </a>
 
             <button type="button"
                     data-open-modal="master-delete-{{ $record->id }}"
-                    class="ms-3 text-xs font-medium text-rose-600 transition hover:text-rose-500 motion-reduce:transition-none dark:text-rose-400">
+                    class="ms-3 inline-flex min-h-11 items-center text-xs font-medium text-rose-600 transition hover:text-rose-500 motion-reduce:transition-none sm:min-h-0 dark:text-rose-400">
                 削除
             </button>
 

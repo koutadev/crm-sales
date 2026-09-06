@@ -66,7 +66,7 @@
                         ])>
                         @if ($column->sortable && $sortUrl !== null)
                             <a href="{{ $sortUrl($column) }}"
-                               class="inline-flex items-center gap-1 rounded transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none dark:hover:text-gray-100">
+                               class="inline-flex min-h-11 items-center gap-1 rounded transition-colors hover:text-gray-800 sm:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none dark:hover:text-gray-100">
                                 {{ $column->label }}
                                 <span class="text-[10px]" aria-hidden="true">{{ $sorted ? ($direction === 'asc' ? '▲' : '▼') : '' }}</span>
                             </a>

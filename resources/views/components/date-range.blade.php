@@ -92,7 +92,7 @@
                     aria-haspopup="dialog"
                     :aria-expanded="open.toString()"
                     aria-controls="{{ $inputId }}-panel"
-                    {{ $attributes->merge(['class' => 'inline-flex w-full items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 motion-reduce:transition-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800']) }}>
+                    {{ $attributes->merge(['class' => 'inline-flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 sm:min-h-0 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 motion-reduce:transition-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800']) }}>
                 <x-icon name="calendar" class="h-4 w-4 shrink-0 text-gray-400" />
 
                 @if ($basisLabel !== null)
@@ -107,7 +107,7 @@
                     x-cloak
                     @click="clear()"
                     @disabled($disabled)
-                    class="rounded-md p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 motion-reduce:transition-none dark:hover:bg-gray-700"
+                    class="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 motion-reduce:transition-none sm:min-h-0 sm:min-w-0 dark:hover:bg-gray-700"
                     aria-label="期間の指定を解除">
                 <x-icon name="close" class="h-4 w-4" />
             </button>

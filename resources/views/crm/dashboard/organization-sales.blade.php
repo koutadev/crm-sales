@@ -77,7 +77,7 @@
                                 :class="axis === @js($key)
                                     ? 'bg-primary text-white'
                                     : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
-                                class="rounded px-3 py-1 font-medium transition-colors motion-reduce:transition-none">
+                                class="inline-flex min-h-11 items-center rounded px-3 py-1 font-medium transition-colors motion-reduce:transition-none sm:min-h-0">
                             {{ $axis['label'] }}
                         </button>
                     @endforeach
@@ -117,7 +117,7 @@
                                                 x-on:click="toggle(@js($node->key))"
                                                 :aria-expanded="(!! open[@js($node->key)]).toString()"
                                                 :aria-label="(open[@js($node->key)] ? '閉じる：' : '開く：') + @js($node->name)"
-                                                class="flex h-5 w-5 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700">
+                                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 sm:h-5 sm:w-5 dark:hover:bg-gray-700">
                                             <span class="text-xs" x-text="open[@js($node->key)] ? '▾' : '▸'">▸</span>
                                         </button>
                                     @else

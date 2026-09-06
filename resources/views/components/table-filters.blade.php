@@ -36,7 +36,7 @@
                 <label for="dt-q" class="block text-xs font-medium text-gray-600 dark:text-gray-400">キーワード</label>
                 <input id="dt-q" type="search" name="q" value="{{ $state->search }}"
                        placeholder="{{ $table->definition->searchPlaceholder() }}"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 sm:text-sm">
+                       class="mt-1 block min-h-11 w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:min-h-0 sm:text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
             </div>
 
             @foreach ($table->filters() as $filter)
@@ -59,7 +59,7 @@
                         </div>
                     @else
                         <select id="dt-{{ $filter->name }}" name="{{ $filter->name }}"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 sm:text-sm">
+                                class="mt-1 block min-h-11 w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:min-h-0 sm:text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
                             <option value="">{{ $filter->placeholder }}</option>
                             @foreach ($filter->options as $value => $label)
                                 <option value="{{ $value }}" @selected($state->filterValue($filter->name) === (string) $value)>
@@ -81,7 +81,7 @@
 
                 @if ($state->hasConditions())
                     <a href="{{ $table->resetUrl() }}"
-                       class="text-sm text-gray-500 underline hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                       class="inline-flex min-h-11 items-center text-sm text-gray-500 underline hover:text-gray-700 sm:min-h-0 dark:text-gray-400 dark:hover:text-gray-200">
                         条件をクリア
                     </a>
                 @endif

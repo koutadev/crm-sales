@@ -101,7 +101,7 @@
         {{-- 年月の切り替え --}}
         <div class="flex items-center justify-between gap-2">
             <button type="button" @click="shiftMonth(-1)"
-                    class="rounded p-1 text-gray-500 transition hover:bg-gray-100 motion-reduce:transition-none dark:hover:bg-gray-700"
+                    class="inline-flex min-h-11 min-w-11 items-center justify-center rounded p-1 text-gray-500 transition hover:bg-gray-100 motion-reduce:transition-none sm:min-h-0 sm:min-w-0 dark:hover:bg-gray-700"
                     aria-label="前の月">
                 <x-icon name="chevron-left" class="h-4 w-4" />
             </button>
@@ -123,7 +123,7 @@
             </div>
 
             <button type="button" @click="shiftMonth(1)"
-                    class="rounded p-1 text-gray-500 transition hover:bg-gray-100 motion-reduce:transition-none dark:hover:bg-gray-700"
+                    class="inline-flex min-h-11 min-w-11 items-center justify-center rounded p-1 text-gray-500 transition hover:bg-gray-100 motion-reduce:transition-none sm:min-h-0 sm:min-w-0 dark:hover:bg-gray-700"
                     aria-label="次の月">
                 <x-icon name="chevron-right" class="h-4 w-4" />
             </button>

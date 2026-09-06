@@ -32,7 +32,7 @@
                     @foreach (['' => '通常', 'with' => '削除済みも表示', 'only' => '削除済みのみ'] as $mode => $label)
                         <a href="{{ $table->trashedUrl($mode) }}"
                            @class([
-                               'px-3 py-1.5',
+                               'inline-flex min-h-11 items-center px-3 py-1.5 sm:min-h-0',
                                'bg-primary text-white' => $state->trashed === $mode,
                                'bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' => $state->trashed !== $mode,
                            ])>
@@ -44,7 +44,7 @@
 
             @if ($table->definition->exportable())
                 <a href="{{ $table->exportUrl() }}"
-                   class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+                   class="inline-flex min-h-11 items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium sm:min-h-0 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
                     CSV出力
                 </a>
             @endif

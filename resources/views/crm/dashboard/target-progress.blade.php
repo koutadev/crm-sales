@@ -11,7 +11,7 @@
         subtitle="実績は受注日ベースの税込金額です。目標は売上目標マスタの全社目標を使っています。">
     <x-slot name="actions">
         <a href="{{ route('masters.sales-targets.index') }}"
-           class="text-xs text-primary-text underline hover:text-primary-hover">目標を編集</a>
+           class="inline-flex min-h-11 items-center text-xs text-primary-text underline hover:text-primary-hover sm:min-h-0">目標を編集</a>
     </x-slot>
 
     <div class="grid grid-cols-1 gap-8 sm:grid-cols-2">

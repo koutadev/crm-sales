@@ -25,7 +25,7 @@
             </div>
 
             <a href="{{ route('customers.index') }}"
-               class="text-sm text-gray-600 underline hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+               class="inline-flex min-h-11 items-center text-sm text-gray-600 underline hover:text-gray-900 sm:min-h-0 dark:text-gray-400 dark:hover:text-gray-200">
                 顧客一覧へ戻る
             </a>
         </div>

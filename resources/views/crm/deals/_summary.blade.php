@@ -37,7 +37,7 @@
                         :class="measure === '{{ $value }}'
                             ? 'bg-primary text-white'
                             : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
-                        class="rounded px-3 py-1 font-medium transition-colors motion-reduce:transition-none">
+                        class="inline-flex min-h-11 items-center rounded px-3 py-1 font-medium transition-colors motion-reduce:transition-none sm:min-h-0">
                     {{ $label }}
                 </button>
             @endforeach

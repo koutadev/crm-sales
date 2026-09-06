@@ -9,7 +9,7 @@
 <div>
     <label for="probability_min" class="block text-xs font-medium text-gray-600 dark:text-gray-400">確度</label>
     <select id="probability_min" name="probability_min"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 sm:text-sm">
+            class="mt-1 block min-h-11 w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:min-h-0 sm:text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
         <option value="">すべて</option>
         @foreach (\App\Tables\DealTable::PROBABILITY_STEPS as $value => $label)
             <option value="{{ $value }}" @selected($probabilityMin === (string) $value)>{{ $label }}</option>

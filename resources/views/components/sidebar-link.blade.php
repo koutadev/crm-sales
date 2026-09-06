@@ -14,6 +14,8 @@
    :title="collapsed ? '{{ $item->label }}' : null"
    @class([
        'group flex items-center gap-3 rounded-md border-s-2 px-3 py-2 text-sm transition-colors motion-reduce:transition-none',
+       // モバイルでは指で押せる大きさにする
+       'min-h-11 sm:min-h-0',
        'border-primary bg-primary-soft font-semibold text-primary-soft-fg' => $active,
        'border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' => ! $active,
    ])>

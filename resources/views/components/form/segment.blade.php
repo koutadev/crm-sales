@@ -26,7 +26,7 @@
 
             <label for="{{ $id }}"
                    @class([
-                       'cursor-pointer rounded px-3 py-1.5 text-xs font-medium transition-colors motion-reduce:transition-none',
+                       'inline-flex min-h-11 cursor-pointer items-center rounded px-3 py-1.5 text-xs font-medium transition-colors motion-reduce:transition-none sm:min-h-0',
                        'bg-primary text-white' => $current === (string) $value,
                        'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700' => $current !== (string) $value,
                        'cursor-not-allowed opacity-50' => $disabled,

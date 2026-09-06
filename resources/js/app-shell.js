@@ -4,7 +4,12 @@
  * - collapsed : 画面幅 lg 以上での折りたたみ。localStorage に保存して次回も維持する
  * - mobileOpen: lg 未満でのオーバーレイ表示。画面遷移のたびに閉じた状態から始まる
  */
+import { lockScroll, unlockScroll } from './scroll-lock';
+
 const STORAGE_KEY = 'app-shell.sidebar-collapsed';
+
+/** スクロールを止めている人の名前（モーダルと同じ仕組みを使う） */
+const SCROLL_OWNER = 'app-shell:drawer';
 
 export default function appShell() {
     return {
@@ -32,10 +37,19 @@ export default function appShell() {
 
         openMobile() {
             this.mobileOpen = true;
+
+            // 開いている間は背面が動かないようにする（モーダルと同じ扱い）
+            lockScroll(SCROLL_OWNER);
         },
 
         closeMobile() {
             this.mobileOpen = false;
+
+            unlockScroll(SCROLL_OWNER);
+        },
+
+        destroy() {
+            unlockScroll(SCROLL_OWNER);
         },
     };
 }

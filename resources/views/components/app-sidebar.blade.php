@@ -47,7 +47,7 @@
 
     {{-- サービス名 --}}
     <div class="flex h-14 shrink-0 items-center gap-2 border-b border-gray-100 px-4 dark:border-gray-700">
-        <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-2">
+        <a href="{{ route('dashboard') }}" class="flex min-h-11 min-w-0 items-center gap-2 sm:min-h-0">
             <x-application-logo />
             <span class="truncate text-sm font-semibold text-gray-800 dark:text-gray-200" x-show="! collapsed">
                 {{ \App\Support\Theme\Theme::name() }}
@@ -55,7 +55,7 @@
         </a>
 
         <button type="button" @click="closeMobile()"
-                class="ms-auto rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 lg:hidden dark:hover:bg-gray-700"
+                class="ms-auto inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 sm:min-h-0 sm:min-w-0 lg:hidden dark:hover:bg-gray-700"
                 aria-label="メニューを閉じる">
             <x-icon name="close" />
         </button>

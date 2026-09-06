@@ -32,7 +32,7 @@
                         </td>
                         <td class="whitespace-nowrap px-4 py-3 text-right">
                             <a href="{{ route('users.edit', $user->id) }}"
-                               class="text-xs font-medium text-primary-text hover:text-primary-hover">
+                               class="inline-flex min-h-11 items-center text-xs font-medium text-primary-text hover:text-primary-hover sm:min-h-0">
                                 ロールを変更
                             </a>
                         </td>

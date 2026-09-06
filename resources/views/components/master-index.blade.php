@@ -26,7 +26,7 @@
 
                 @can($managePermission)
                     <a href="{{ route($routeName.'.create') }}"
-                       class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-primary-hover">
+                       class="inline-flex min-h-11 items-center rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-primary-hover sm:min-h-0">
                         {{ $resourceLabel }}を新規登録
                     </a>
                 @endcan

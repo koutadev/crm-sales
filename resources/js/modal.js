@@ -1,3 +1,5 @@
+import { lockScroll, unlockScroll } from './scroll-lock';
+
 /**
  * モーダル。
  *
@@ -91,7 +93,7 @@ export default function modal({ name = null, show = false, closable = true } = {
         },
 
         afterOpen() {
-            document.body.classList.add('overflow-y-hidden');
+            lockScroll(`modal:${this.name ?? 'anonymous'}`);
 
             this.$nextTick(() => {
                 const target = this.focusables()[0] ?? this.$refs.panel;
@@ -101,7 +103,7 @@ export default function modal({ name = null, show = false, closable = true } = {
         },
 
         afterClose() {
-            document.body.classList.remove('overflow-y-hidden');
+            unlockScroll(`modal:${this.name ?? 'anonymous'}`);
 
             this.previouslyFocused?.focus?.();
             this.previouslyFocused = null;

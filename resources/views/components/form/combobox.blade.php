@@ -141,7 +141,7 @@
                         x-cloak
                         @click="clear(); $refs.input?.focus()"
                         @disabled($disabled)
-                        class="rounded p-1 text-gray-400 transition hover:text-gray-600 motion-reduce:transition-none dark:hover:text-gray-200"
+                        class="inline-flex min-h-11 min-w-11 items-center justify-center rounded p-1 text-gray-400 transition hover:text-gray-600 motion-reduce:transition-none sm:min-h-0 sm:min-w-0 dark:hover:text-gray-200"
                         aria-label="選択を解除">
                     <x-icon name="close" class="h-4 w-4" />
                 </button>

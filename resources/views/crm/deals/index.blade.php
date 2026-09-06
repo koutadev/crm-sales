@@ -11,7 +11,7 @@
 
             @can(\App\Enums\PermissionName::MasterManage->value)
                 <a href="{{ route('deals.create') }}"
-                   class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-primary-hover">
+                   class="inline-flex min-h-11 items-center rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-primary-hover sm:min-h-0">
                     商談を追加
                 </a>
             @endcan
@@ -33,14 +33,14 @@
                     <x-table.row :muted="$deal->trashed()">
                         <td class="whitespace-nowrap px-4 py-3 font-mono text-xs">
                             <a href="{{ route('deals.show', $deal->id) }}"
-                               class="text-primary-text hover:text-primary-hover hover:underline">
+                               class="inline-flex min-h-11 items-center text-primary-text hover:text-primary-hover hover:underline sm:min-h-0">
                                 {{ $deal->code }}
                             </a>
                         </td>
 
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400">
                             @if ($deal->partner)
-                                <a href="{{ route('customers.show', $deal->partner_id) }}" class="hover:underline">
+                                <a href="{{ route('customers.show', $deal->partner_id) }}" class="inline-flex min-h-11 items-center hover:underline sm:min-h-0">
                                     {{ $deal->partner->name }}
                                 </a>
                             @else
@@ -49,7 +49,7 @@
                         </td>
 
                         <td class="px-4 py-3 font-medium">
-                            <a href="{{ route('deals.show', $deal->id) }}" class="hover:underline">{{ $deal->title }}</a>
+                            <a href="{{ route('deals.show', $deal->id) }}" class="inline-flex min-h-11 items-center hover:underline sm:min-h-0">{{ $deal->title }}</a>
                         </td>
 
                         <td class="whitespace-nowrap px-4 py-3 text-center">
@@ -94,13 +94,13 @@
                                 @endif
                             @else
                                 <a href="{{ route('deals.show', $deal->id) }}"
-                                   class="text-xs font-medium text-primary-text hover:text-primary-hover">
+                                   class="inline-flex min-h-11 items-center text-xs font-medium text-primary-text hover:text-primary-hover sm:min-h-0">
                                     詳細
                                 </a>
 
                                 @can(\App\Enums\PermissionName::MasterManage->value)
                                     <a href="{{ route('deals.edit', $deal->id) }}"
-                                       class="ms-3 text-xs font-medium text-primary-text hover:text-primary-hover">
+                                       class="ms-3 inline-flex min-h-11 items-center text-xs font-medium text-primary-text hover:text-primary-hover sm:min-h-0">
                                         編集
                                     </a>
                                 @endcan

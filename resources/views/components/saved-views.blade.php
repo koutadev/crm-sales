@@ -26,7 +26,7 @@
                 @click="open = ! open"
                 aria-haspopup="menu"
                 :aria-expanded="open.toString()"
-                class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">
+                class="inline-flex min-h-11 items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:min-h-0 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">
             <span>{{ $active?->name ?? 'すべて' }}</span>
             @if ($active?->is_default)
                 <x-badge tone="primary">既定</x-badge>
@@ -58,7 +58,7 @@
                 ])>
                     <a href="{{ $table->viewUrl($view) }}" role="menuitem"
                        @class([
-                           'flex-1 truncate rounded px-2 py-2 hover:bg-gray-50 dark:hover:bg-gray-700',
+                           'flex min-h-11 flex-1 items-center truncate rounded px-2 py-2 hover:bg-gray-50 sm:min-h-0 dark:hover:bg-gray-700',
                            'text-primary-soft-fg' => $active?->id === $view->id,
                            'text-gray-700 dark:text-gray-200' => $active?->id !== $view->id,
                        ])>
@@ -71,7 +71,7 @@
                     {{-- 削除の確認は自前のダイアログで行う（ブラウザ標準の confirm は使わない） --}}
                     <button type="button"
                             data-open-modal="saved-view-delete-{{ $view->id }}"
-                            class="rounded p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-rose-600 motion-reduce:transition-none dark:hover:bg-gray-700"
+                            class="inline-flex min-h-11 min-w-11 items-center justify-center rounded p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-rose-600 motion-reduce:transition-none sm:min-h-0 sm:min-w-0 dark:hover:bg-gray-700"
                             aria-label="ビュー「{{ $view->name }}」を削除">
                         <x-icon name="close" class="h-4 w-4" />
                     </button>
