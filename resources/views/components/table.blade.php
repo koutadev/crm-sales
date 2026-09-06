@@ -9,6 +9,8 @@
     'isEmpty' => false,
     'loading' => false,
     'loadingRows' => 5,
+    // 画面が狭いとき、行をカードに積み替えるか（md 以上は従来のテーブル表示）
+    'cards' => true,
 ])
 
 @php
@@ -41,7 +43,12 @@
     共通一覧基盤(TableDefinition)を使う画面は <x-data-table> が中でこれを使う。
 --}}
 <div {{ $attributes->merge(['class' => 'overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800']) }}>
-    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+    {{--
+        data-table-cards が付いていると、md 未満で行がカードに積み替わる
+        （見た目は resources/css/app.css、列見出しの転写は resources/js/table-cards.js）。
+    --}}
+    <table @if ($cards) data-table-cards @endif
+           class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
         <thead class="bg-gray-50 dark:bg-gray-900/40">
             <tr>
                 @foreach ($items as $column)
@@ -83,7 +90,7 @@
                 @for ($row = 0; $row < $loadingRows; $row++)
                     <tr aria-hidden="true">
                         @for ($cell = 0; $cell < $columnCount; $cell++)
-                            <td class="px-4 py-3">
+                            <td data-label="" class="px-4 py-3">
                                 <span class="block h-3 w-full animate-pulse rounded bg-gray-200 motion-reduce:animate-none dark:bg-gray-700"></span>
                             </td>
                         @endfor

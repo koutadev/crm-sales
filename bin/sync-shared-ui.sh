@@ -81,6 +81,7 @@ PATHS=(
     "resources/views/masters/partners"
     "resources/views/masters/simple"
     "resources/views/users"
+    "resources/views/activity-logs"
     "bin/mobile-audit.mjs"
 )
 

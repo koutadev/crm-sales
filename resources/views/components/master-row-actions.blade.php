@@ -6,20 +6,31 @@
     'managePermission' => \App\Enums\PermissionName::MasterManage->value,
 ])
 
-{{-- 一覧の「操作」列。権限と削除状態に応じて出し分ける --}}
-<td class="whitespace-nowrap px-4 py-3 text-right">
+{{--
+    一覧の「操作」列。権限と削除状態に応じて出し分ける。
+
+    削除・復元の確認は自前のダイアログ（x-confirm-dialog）で行う。
+    data-open-modal はどこからでも効く（Alpine のスコープに依存しない）。
+    画面が狭いときは、この列がカードの下段にまとまる（data-actions）。
+--}}
+<td data-actions class="whitespace-nowrap px-4 py-3 text-right">
     @can($managePermission)
         @if ($record->trashed())
             {{-- 復元は管理者のみ --}}
             @if (auth()->user()?->isAdmin())
-                <form method="POST" action="{{ route($routeName.'.restore', $record->id) }}" class="inline">
-                    @csrf
-                    <button type="submit"
-                            class="text-xs font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400"
-                            onclick="return confirm('この{{ $resourceLabel }}を復元しますか?')">
-                        復元
-                    </button>
-                </form>
+                <button type="button"
+                        data-open-modal="master-restore-{{ $record->id }}"
+                        class="text-xs font-medium text-emerald-600 transition hover:text-emerald-500 motion-reduce:transition-none dark:text-emerald-400">
+                    復元
+                </button>
+
+                <x-confirm-dialog name="master-restore-{{ $record->id }}"
+                                  title="{{ $resourceLabel }}を復元しますか？"
+                                  :action="route($routeName.'.restore', $record->id)"
+                                  confirm="復元する"
+                                  variant="primary">
+                    削除済みの{{ $resourceLabel }}を元に戻します。
+                </x-confirm-dialog>
             @else
                 <span class="text-xs text-gray-400">&mdash;</span>
             @endif
@@ -29,17 +40,19 @@
                 編集
             </a>
 
-            <form method="POST" action="{{ route($routeName.'.destroy', $record->id) }}" class="ms-3 inline">
-                @csrf
-                @method('DELETE')
-                <button type="submit"
-                        class="text-xs font-medium text-rose-600 hover:text-rose-500 dark:text-rose-400"
-                        onclick="return confirm('この{{ $resourceLabel }}を削除しますか?（論理削除のためデータは残ります）')">
-                    削除
-                </button>
-            </form>
+            <button type="button"
+                    data-open-modal="master-delete-{{ $record->id }}"
+                    class="ms-3 text-xs font-medium text-rose-600 transition hover:text-rose-500 motion-reduce:transition-none dark:text-rose-400">
+                削除
+            </button>
+
+            <x-confirm-dialog name="master-delete-{{ $record->id }}"
+                              title="{{ $resourceLabel }}を削除しますか？"
+                              :action="route($routeName.'.destroy', $record->id)"
+                              method="DELETE"
+                              confirm="削除する">
+                論理削除のためデータは残ります（管理者は削除済みの表示・復元ができます）。
+            </x-confirm-dialog>
         @endif
-    @else
-        <span class="text-xs text-gray-400">&mdash;</span>
     @endcan
 </td>

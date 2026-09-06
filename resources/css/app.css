@@ -71,3 +71,96 @@
         --color-primary-text: color-mix(in oklab, var(--color-primary) 55%, white);
     }
 }
+
+/*
+ * 一覧テーブルのモバイル表示（積み上げカード）。
+ *
+ * 画面が狭いとテーブルは列が潰れて読めなくなる（氏名が 1 文字ずつ折り返り、
+ * 右端の「操作」列は画面の外へ出てしまう）。md 未満では行をカードに積み替え、
+ * 各セルの前に列見出しを出す。見出しの文字は JS が data-label に写す
+ * （resources/js/table-cards.js）ので、画面側に書くことは何もない。
+ *
+ * md 以上は今までどおりのテーブル表示。
+ */
+@media (width < 48rem) {
+    table[data-table-cards],
+    table[data-table-cards] > thead,
+    table[data-table-cards] > tbody,
+    table[data-table-cards] > tfoot,
+    table[data-table-cards] > tbody > tr,
+    table[data-table-cards] > tfoot > tr,
+    table[data-table-cards] > tbody > tr > td,
+    table[data-table-cards] > tfoot > tr > td,
+    table[data-table-cards] > tfoot > tr > th {
+        display: block;
+    }
+
+    table[data-table-cards] > thead {
+        display: none;
+    }
+
+    table[data-table-cards] > tbody > tr,
+    table[data-table-cards] > tfoot > tr {
+        padding: 0.625rem 1rem;
+    }
+
+    /* 合計行（tfoot）は見出しと値を左右に並べる */
+    table[data-table-cards] > tfoot > tr > th,
+    table[data-table-cards] > tfoot > tr > td {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.1875rem 0;
+        text-align: start;
+        white-space: normal;
+    }
+
+    table[data-table-cards] > tbody > tr > td {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.1875rem 0;
+        text-align: start;
+        white-space: normal;
+    }
+
+    /* 列見出し（JS が写した data-label）を値の前に出す */
+    table[data-table-cards] > tbody > tr > td::before {
+        content: attr(data-label);
+        flex: none;
+        font-size: 0.75rem;
+        line-height: 1.5rem;
+        color: var(--color-gray-500);
+    }
+
+    table[data-table-cards] > tbody > tr > td:not([data-label])::before {
+        content: none;
+    }
+
+    /* 「操作」はカードの下段にまとめる */
+    table[data-table-cards] > tbody > tr > td[data-actions] {
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 0.375rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--color-gray-100);
+    }
+
+    /* データが無いときの 1 行は、そのまま中央に置く */
+    table[data-table-cards] > tbody > tr > td[colspan] {
+        display: block;
+        text-align: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        table[data-table-cards] > tbody > tr > td::before {
+            color: var(--color-gray-400);
+        }
+
+        table[data-table-cards] > tbody > tr > td[data-actions] {
+            border-top-color: var(--color-gray-700);
+        }
+    }
+}

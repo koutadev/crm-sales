@@ -14,7 +14,9 @@
                     </p>
 
                     <div class="mt-4 overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                        {{-- 画面が狭いときは行がカードに積み替わる（data-table-cards） --}}
+                        <table data-table-cards
+                               class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                             <thead>
                                 <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     <th scope="col" class="py-3 pe-4 font-medium">日時</th>

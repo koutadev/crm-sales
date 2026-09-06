@@ -77,7 +77,9 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                        {{-- 画面が狭いときは行がカードに積み替わる（data-table-cards） --}}
+<table data-table-cards
+       class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-900/40">
                                 <tr>
                                     <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">ステータス</th>

@@ -10,7 +10,9 @@
     @endcan
 
 <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+    {{-- 画面が狭いときは行がカードに積み替わる（data-table-cards） --}}
+<table data-table-cards
+       class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
         <thead class="bg-gray-50 dark:bg-gray-900/40">
             <tr>
                 @foreach (['商談コード' => 'left', '件名' => 'left', 'ステータス' => 'center', '確度' => 'right', '金額(税込)' => 'right', '予定クローズ日' => 'left', '受注日' => 'left', '営業担当' => 'left'] as $label => $align)

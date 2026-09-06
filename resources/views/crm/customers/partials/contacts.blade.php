@@ -9,7 +9,9 @@
 {{-- 担当者タブ: 会社に紐づく担当者をこの中だけで追加・編集・無効化する --}}
 <div class="space-y-4" x-data="{ editing: {{ $openFormId === null ? 'null' : $openFormId }} }">
     <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+        {{-- 画面が狭いときは行がカードに積み替わる（data-table-cards） --}}
+<table data-table-cards
+       class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-900/40">
                 <tr>
                     @foreach (['氏名', '部署', '役職', 'メールアドレス', '電話番号', '状態'] as $label)

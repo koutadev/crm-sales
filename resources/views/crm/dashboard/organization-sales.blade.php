@@ -86,7 +86,8 @@
 
             <div class="overflow-x-auto">
             @foreach ($axes as $axisKey => $axis)
-            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"
+            <table data-table-cards
+                   class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"
                    x-show="axis === @js($axisKey)" @if ($axisKey !== 'hierarchy') x-cloak @endif>
                 <thead class="bg-gray-50 dark:bg-gray-900/40">
                     <tr>

@@ -6,6 +6,7 @@ import dateRange from './date-range';
 import datepicker from './datepicker';
 import masterDetail from './master-detail';
 import modal, { registerModalTriggers } from './modal';
+import registerTableCards from './table-cards';
 import registerToastStore from './toast';
 import './charts';
 
@@ -34,5 +35,8 @@ Alpine.data('masterDetail', masterDetail);
 
 // トースト通知（Alpine のストア）
 registerToastStore(Alpine);
+
+// 一覧テーブルのモバイル表示（列見出しを data-label に写す）
+registerTableCards();
 
 Alpine.start();

@@ -68,17 +68,22 @@
                         @endif
                     </a>
 
-                    <form method="POST" action="{{ route('saved-views.destroy', $view->id) }}"
-                          onsubmit="return confirm('ビュー「{{ $view->name }}」を削除しますか?')">
-                        @csrf
-                        @method('DELETE')
-                        <input type="hidden" name="redirect_to" value="{{ $indexPath }}">
-                        <button type="submit"
-                                class="rounded p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-rose-600 motion-reduce:transition-none dark:hover:bg-gray-700"
-                                aria-label="ビュー「{{ $view->name }}」を削除">
-                            <x-icon name="close" class="h-4 w-4" />
-                        </button>
-                    </form>
+                    {{-- 削除の確認は自前のダイアログで行う（ブラウザ標準の confirm は使わない） --}}
+                    <button type="button"
+                            data-open-modal="saved-view-delete-{{ $view->id }}"
+                            class="rounded p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-rose-600 motion-reduce:transition-none dark:hover:bg-gray-700"
+                            aria-label="ビュー「{{ $view->name }}」を削除">
+                        <x-icon name="close" class="h-4 w-4" />
+                    </button>
+
+                    <x-confirm-dialog name="saved-view-delete-{{ $view->id }}"
+                                      title="このビューを削除しますか？"
+                                      :action="route('saved-views.destroy', $view->id)"
+                                      method="DELETE"
+                                      confirm="削除する"
+                                      :fields="['redirect_to' => $indexPath]">
+                        ビュー「{{ $view->name }}」を削除します。保存した検索条件だけが消え、データはそのまま残ります。
+                    </x-confirm-dialog>
                 </div>
             @empty
                 <p class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
