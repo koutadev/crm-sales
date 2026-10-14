@@ -1042,7 +1042,7 @@ resources/
 
 docker/                         # Dockerfile / nginx / postgres 初期化
 lang/ja/                        # 日本語メッセージ
-tests/                          # 99 件
+tests/                          # 168 件
 .github/workflows/ci.yml
 phpstan.neon / pint.json
 ```
