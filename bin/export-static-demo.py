@@ -3,7 +3,7 @@
 本体（crm-sales）の実画面を静的サイトとして書き出す。
 
     docker compose up -d                       # 本体を起動しておく
-    python3 bin/export-static-demo.py          # ../crm-demo-static/public へ書き出す
+    python3 bin/export-static-demo.py          # ../crm-demo-static へ書き出す
     python3 bin/export-static-demo.py --out /path/to/dir --base http://localhost:8080
 
 やっていること:
@@ -60,6 +60,11 @@ BANNER = """
 """
 
 DEMO_CSS = """/* 静的デモ用の追記。本体のスタイルには手を入れない。 */
+:root {
+    /* バナーの高さ。実際の高さは demo.js が測って上書きする（折り返し対策） */
+    --demo-banner-h: 2.25rem;
+}
+
 .demo-banner {
     position: sticky;
     top: 0;
@@ -75,6 +80,15 @@ DEMO_CSS = """/* 静的デモ用の追記。本体のスタイルには手を入
 }
 
 .demo-banner strong { color: #fdba74; font-weight: 600; }
+
+/* 固定表示のサイドバーとトップバーを、バナーの下から始める（ロゴが隠れないように） */
+body[data-demo-page] #app-sidebar {
+    top: var(--demo-banner-h);
+}
+
+body[data-demo-page] header.sticky.top-0 {
+    top: var(--demo-banner-h);
+}
 
 .demo-banner__tag {
     flex-shrink: 0;
@@ -116,6 +130,18 @@ DEMO_JS = """/* 静的デモ用。動かない操作を「動きません」と�
     'use strict';
 
     var MESSAGE = 'このデモでは動作しません（表示専用の静的サイトです）。';
+
+    /* バナーの実際の高さを CSS 変数に反映する（画面幅で折り返して高さが変わるため） */
+    function syncBannerHeight() {
+        var banner = document.querySelector('.demo-banner');
+
+        if (banner) {
+            document.documentElement.style.setProperty('--demo-banner-h', banner.offsetHeight + 'px');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', syncBannerHeight);
+    window.addEventListener('resize', syncBannerHeight);
 
     function notice(message) {
         var el = document.querySelector('.demo-notice');
